@@ -1,0 +1,176 @@
+{
+    "designSystem": {
+      "style": {
+        "overallTheme": "modern, minimal, soft neomorphism with strong focus on cards",
+        "colorPalette": {
+          "primary": "#6C5CE7", 
+          "secondary": "#A29BFE",
+          "background": "#FFFFFF",
+          "surface": "#F9F9FB",
+          "textPrimary": "#111111",
+          "textSecondary": "#666666",
+          "accent": "#8E7CFF",
+          "statusPositive": "#4CAF50",
+          "statusNegative": "#E53935"
+        },
+        "gradients": {
+          "cardBackground": ["#8E7CFF", "#6C5CE7"],
+          "ctaButton": ["#8E7CFF", "#6C5CE7"]
+        },
+        "shadows": {
+          "card": {
+            "blur": 24,
+            "spread": 0,
+            "offsetY": 8,
+            "color": "rgba(0,0,0,0.1)"
+          },
+          "floatingElements": {
+            "blur": 40,
+            "spread": -5,
+            "offsetY": 10,
+            "color": "rgba(0,0,0,0.12)"
+          }
+        },
+        "corners": {
+          "small": 8,
+          "medium": 16,
+          "large": 24,
+          "xl": 32,
+          "pill": 100
+        },
+        "typography": {
+          "fontFamily": "Sans-serif, rounded modern",
+          "weights": {
+            "light": 300,
+            "regular": 400,
+            "medium": 500,
+            "bold": 700
+          },
+          "sizes": {
+            "caption": 12,
+            "body": 14,
+            "bodyLarge": 16,
+            "subtitle": 18,
+            "title": 22,
+            "headline": 28
+          },
+          "lineHeight": {
+            "compact": 1.2,
+            "normal": 1.4,
+            "spacious": 1.6
+          }
+        },
+        "icons": {
+          "style": "thin line, rounded edges, minimal",
+          "sizes": {
+            "small": 20,
+            "medium": 24,
+            "large": 32
+          }
+        }
+      },
+      "layout": {
+        "spacing": {
+          "xxs": 4,
+          "xs": 8,
+          "sm": 12,
+          "md": 16,
+          "lg": 24,
+          "xl": 32,
+          "xxl": 48
+        },
+        "grid": {
+          "columns": 4,
+          "gutter": 16,
+          "margin": 24
+        },
+        "screenStructure": [
+          "Header with greeting / title",
+          "Primary card with gradient background for featured data",
+          "Supporting info sections in white containers with rounded corners",
+          "History / list of actions in stacked cards or rows",
+          "Floating CTA button with rounded shape and gradient background"
+        ]
+      },
+      "components": {
+        "card": {
+          "background": "gradient",
+          "cornerRadius": "large",
+          "shadow": "card",
+          "contentAlignment": "center",
+          "elementSpacing": "md"
+        },
+        "button": {
+          "primary": {
+            "background": "gradient",
+            "textColor": "white",
+            "cornerRadius": "pill",
+            "paddingVertical": 16,
+            "paddingHorizontal": 24
+          },
+          "secondary": {
+            "background": "surface",
+            "textColor": "primary",
+            "border": "1px solid #E0E0E0",
+            "cornerRadius": "pill"
+          },
+          "floatingAction": {
+            "shape": "circle",
+            "background": "gradient",
+            "icon": "plus",
+            "elevation": "floatingElements"
+          }
+        },
+        "listItem": {
+          "structure": ["icon", "title", "subtitle", "trailing value"],
+          "background": "transparent",
+          "spacing": "sm",
+          "divider": "subtle"
+        },
+        "navigation": {
+          "bottomTabBar": {
+            "style": "floating, rounded",
+            "background": "white",
+            "shadow": "card",
+            "activeColor": "primary",
+            "inactiveColor": "#B0B0B0"
+          },
+          "backButton": {
+            "icon": "arrow-left",
+            "size": "medium"
+          }
+        },
+        "inputs": {
+          "textField": {
+            "background": "surface",
+            "cornerRadius": "medium",
+            "padding": "sm",
+            "border": "none",
+            "textColor": "textPrimary"
+          },
+          "optionSelector": {
+            "style": "pill buttons",
+            "activeBackground": "gradient",
+            "inactiveBackground": "surface",
+            "activeTextColor": "white",
+            "inactiveTextColor": "textSecondary"
+          }
+        }
+      },
+      "motion": {
+        "pageTransitions": "fade + slide up",
+        "buttonPress": "scale down slightly",
+        "cardEntrance": "slide up with fade",
+        "duration": {
+          "fast": 150,
+          "normal": 300,
+          "slow": 500
+        },
+        "easing": {
+          "default": "ease-in-out",
+          "entrance": "ease-out",
+          "exit": "ease-in"
+        }
+      }
+    }
+  }

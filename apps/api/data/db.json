@@ -1,0 +1,44 @@
+{
+  "users": [
+    {
+      "id": "usr_038a6fd9c71e4f33",
+      "createdAt": "2025-09-03T10:11:51.810Z",
+      "updatedAt": "2025-09-03T12:35:31.653Z",
+      "name": "DELEUIL, Marius Valentin Alexandre",
+      "email": "mvadeleuil@connect.ust.hk",
+      "studentId": "21288837",
+      "casTokenHash": "0a7f56fc9a12dca5c9f0ed9c3f79bea5829995d28214401f5a62635ff5abc348",
+      "casPayload": {
+        "meta": {
+          "code": 200,
+          "message": "Authentication successful"
+        },
+        "data": {
+          "auth": {
+            "token": "moxgRjlJduy5u951fxu7"
+          },
+          "student": {
+            "id": "21288837",
+            "student_id": "21288837",
+            "emplid": "21288837",
+            "name": "DELEUIL, Marius Valentin Alexandre",
+            "email": "mvadeleuil@connect.ust.hk",
+            "bldg_cde": "UG9",
+            "bldg_short_nam": "UG Hall IX",
+            "bldg_apt_room_nbr": "003",
+            "bldg_room_bed_nbr": "R",
+            "bldg_floor_nbr": " 0",
+            "bldg_room_type_cde": "HD",
+            "bldg_room_res_type_ind": "R",
+            "check_in_dat": "2025-08-27T11:57:00.000Z",
+            "charge_type": "prepaid"
+          }
+        }
+      }
+    }
+  ],
+  "scheduledActions": [],
+  "_meta": {
+    "version": 1
+  }
+}
