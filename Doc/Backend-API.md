@@ -10,8 +10,15 @@ Auth: JWT Bearer signé côté serveur (`JWT_SECRET` ou `SUPABASE_JWT_SECRET`).
 ## Authentification
 - POST `/auth/session`
   - Body: `{ casPayload: any }` (JSON renvoyé par l'API CAS/NJGGT)
-  - Effet: upsert du profil utilisateur (hash du token CAS si présent), retourne un JWT pour ce backend
-  - Réponse: `{ token: string, isNew: boolean, user: { id, name?, email?, studentId?, room?, ext? } }`
+  - Effet: vérifie d'abord le token auprès de l'API école (appel `GET /prepaid/ac-status`)
+    - Si erreur: renvoie l'erreur normalisée `{ errorMessage }` avec un code HTTP cohérent (ex: 401/403)
+    - Si OK: upsert du profil utilisateur (hash du token CAS + token brut côté serveur), incrémente `sessionVersion` pour invalider les anciens JWT, puis retourne un nouveau JWT backend
+  - Réponse:
+    - `{ token: string, isNew: boolean, user: { id, firstName?, lastName?, surname?, lastname?, email?, studentId?, room?, ext?, hallInfo? } }`
+      - `surname`: nom de famille (ex: `DELEUIL`)
+      - `lastname`: prénoms (ex: `Marius Valentin Alexandre`)
+      - `hallInfo`: snapshot des infos résidence, ex:
+        - `{ bldg_cde, bldg_short_nam, bldg_apt_room_nbr, bldg_room_bed_nbr, bldg_floor_nbr, bldg_room_type_cde, bldg_room_res_type_ind }`
   - Option: `?debug=1` → ajoute `{ debug: { extracted: { field: { value, path } } } }`
 
 Notes:
@@ -23,8 +30,8 @@ Notes:
 ## Profil
 - GET `/profile` (Bearer) → infos du profil
 - PUT `/profile` (Bearer)
-  - Body: `{ name?, firstName?, lastName?, email?, studentId?, room?, ext? }`
-  - Réponse: profil à jour
+  - Body: `{ firstName?, lastName?, surname?, lastname?, email?, studentId?, room?, ext?, hallInfo? }`
+  - Réponse: profil à jour (inclut `hallInfo`)
 
 ## Contrôle AC (via votre API uniquement)
 - GET `/ac/balance` (Bearer)
@@ -57,7 +64,7 @@ Notes:
 Supprimés (consolidés dans `/ac/power`): `/ac/power-for`, `/ac/run-for`, `/ac/toggle`
 
 Notes:
-- Le token CAS est extrait du `casPayload` stocké pour l'utilisateur. Si absent, la requête renvoie `400`.
+- Le token CAS est résolu en priorité depuis `user.acToken.value` (stocké côté serveur) puis, en repli, extrait du `casPayload` sauvegardé. Si absent, la requête renvoie `400`.
 - L'URL de base de l'API école peut être configurée via `EXTERNAL_AC_API_BASE` (défaut: `https://w5.ab.ust.hk/njggt/api/app`).
 - L'API école peut renvoyer HTTP 200 avec `meta.code` non-200 (ex. 403). Notre API remappe le code HTTP de la réponse sur `meta.code` quand présent, puis retourne soit des données utiles en succès (ou un message pour `/ac/power`), soit `{ errorMessage }` en erreur.
 - Si `meta.code` est un code à 4 chiffres (ex. 4033), il est ramené à 3 chiffres en supprimant le dernier (ex. 4033 → 403) avant d'être utilisé comme code HTTP.

@@ -45,12 +45,24 @@ export type SessionResponse = {
   isNew?: boolean;
   user: {
     id: string;
-    name?: string;
+    // legacy
     firstName?: string;
     lastName?: string;
+    // new fields
+    surname?: string;  // famille
+    lastname?: string; // prénoms
     email?: string;
     studentId?: string;
     room?: string;
     ext?: string;
+    hallInfo?: {
+      bldg_cde?: string;
+      bldg_short_nam?: string;
+      bldg_apt_room_nbr?: string;
+      bldg_room_bed_nbr?: string;
+      bldg_floor_nbr?: string;
+      bldg_room_type_cde?: string;
+      bldg_room_res_type_ind?: string;
+    };
   };
 };

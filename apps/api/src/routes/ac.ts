@@ -2,7 +2,7 @@ import { Router } from 'express';
 import type { Request, Response } from 'express';
 import { requireAuth } from '../middleware/auth.js';
 import { db } from '../db/database.js';
-import { acRemoteFetch, getCasTokenFromPayload, parsePowerStatus } from '../util/acProxy.js';
+import { acRemoteFetch, resolveUserAcToken, parsePowerStatus } from '../util/acProxy.js';
 
 // AC routes that proxy the school API and present simplified responses
 const router = Router();
@@ -23,7 +23,7 @@ function getACContext(req: Request, res: Response): { userId: string; token: str
     res.status(404).json({ errorMessage: 'User not found' });
     return undefined;
   }
-  const token = getCasTokenFromPayload(user.casPayload);
+  const token = resolveUserAcToken(userId);
   if (!token) {
     res.status(400).json({ errorMessage: 'Missing CAS token for user' });
     return undefined;

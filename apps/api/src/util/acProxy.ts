@@ -1,4 +1,5 @@
 import { extractUserFields } from './extract.js';
+import { db } from '../db/database.js';
 // Lightweight helpers to call the school AC API and normalize responses
 // so the mobile app sees consistent shapes and HTTP codes.
 
@@ -14,6 +15,19 @@ export function getCasTokenFromPayload(payload: any): string | undefined {
   } catch {
     return undefined;
   }
+}
+
+/**
+ * Resolve the best available AC token for a user:
+ * - Prefer stored user.acToken.value when present
+ * - Fallback to extracting from the saved casPayload
+ */
+export function resolveUserAcToken(userId: string): string | undefined {
+  const user = db.getUser(userId) as any;
+  if (!user) return undefined;
+  const direct = user?.acToken?.value;
+  if (typeof direct === 'string' && direct.length >= 6) return direct;
+  return getCasTokenFromPayload(user?.casPayload);
 }
 
 // Base URL for the upstream AC API (configurable for dev/prod)

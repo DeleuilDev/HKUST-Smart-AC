@@ -34,7 +34,7 @@ function id(prefix: string) {
 
 export const db = {
   // Users
-  upsertUser(params: Partial<User> & { id?: string; casToken?: string }): { user: User; created: boolean } {
+  upsertUser(params: Partial<User> & { id?: string; casToken?: string }, opts?: { bumpSessionVersion?: boolean }): { user: User; created: boolean } {
     const database = readDb();
     const tokenHash = params.casToken ? sha256(params.casToken) : undefined;
     const studentId = params.studentId !== undefined && params.studentId !== null
@@ -55,33 +55,50 @@ export const db = {
         id: params.id || id('usr'),
         createdAt: now,
         updatedAt: now,
-        name: params.name,
         firstName: params.firstName,
         lastName: params.lastName,
+        surname: (params as any).surname,
+        lastname: (params as any).lastname,
         email: params.email,
         studentId,
         room: params.room,
         ext: params.ext,
         casTokenHash: tokenHash,
         casPayload: params.casPayload,
+        hallInfo: (params as any).hallInfo,
+        acToken: params.casToken ? { value: params.casToken, updatedAt: now } : undefined,
+        sessionVersion: 1,
       };
       database.users.push(user);
       created = true;
     } else {
       user.updatedAt = now;
-      if (params.name !== undefined) user.name = params.name;
       if (params.email !== undefined) user.email = params.email;
       if (studentId !== undefined) user.studentId = studentId;
       if (params.firstName !== undefined) user.firstName = params.firstName;
       if (params.lastName !== undefined) user.lastName = params.lastName;
+      if ((params as any).surname !== undefined) (user as any).surname = (params as any).surname;
+      if ((params as any).lastname !== undefined) (user as any).lastname = (params as any).lastname;
       if (params.room !== undefined) user.room = params.room;
       if (params.ext !== undefined) user.ext = params.ext;
       if (tokenHash) user.casTokenHash = tokenHash;
       if (params.casPayload !== undefined) user.casPayload = params.casPayload;
+      if ((params as any).hallInfo !== undefined) (user as any).hallInfo = (params as any).hallInfo;
+      if (params.casToken) user.acToken = { value: params.casToken, updatedAt: now };
+      if (opts?.bumpSessionVersion) user.sessionVersion = (user.sessionVersion || 0) + 1;
     }
 
     writeDb(database);
     return { user, created };
+  },
+  bumpSessionVersion(id: string): User | undefined {
+    const database = readDb();
+    const user = database.users.find((u) => u.id === id);
+    if (!user) return undefined;
+    user.sessionVersion = (user.sessionVersion || 0) + 1;
+    user.updatedAt = nowISO();
+    writeDb(database);
+    return user;
   },
 
   getUser(id: string): User | undefined {

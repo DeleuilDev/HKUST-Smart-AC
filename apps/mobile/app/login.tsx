@@ -75,6 +75,7 @@ export default function LoginScreen() {
   const webRef = useRef<WebView>(null);
   const [captured, setCaptured] = useState(false);
   const [lastUrl, setLastUrl] = useState<string>('');
+  
 
   const source = useMemo(() => ({ uri: AC_APP_ENTRY_URL }), []);
 
@@ -117,11 +118,8 @@ export default function LoginScreen() {
         }
 
         await setAuth({ token, raw: parsed, ...(session ? { server: session } : {}) });
-        if (session?.isNew) {
-          router.replace('/welcome-new');
-        } else {
-          router.replace('/(tabs)');
-        }
+        // After successful auth, go to a minimal test page
+        router.replace('/profile');
       }
     } catch (err) {
       console.warn('onMessage parse error', err);

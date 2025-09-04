@@ -20,13 +20,18 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
-        <Stack.Screen name="welcome-new" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ presentation: 'modal', animation: 'slide_from_bottom', title: 'CAS Login' }} />
+        <Stack.Screen name="webview" options={{ presentation: 'modal', animation: 'slide_from_bottom', title: 'Browser' }} />
+        <Stack.Screen name="topup-history" options={{ title: 'Top-up History' }} />
         <Stack.Screen name="profile" options={{ headerShown: true, title: 'Profile', headerBackVisible: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>
   );
 }
+
+// Ensure we always start from the index route instead of restoring a previous screen (e.g., /login) on Android.
+export const unstable_settings = {
+  initialRouteName: 'index',
+} as const;
