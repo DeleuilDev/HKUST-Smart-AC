@@ -20,6 +20,7 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ presentation: 'modal', animation: 'slide_from_bottom', title: 'CAS Login' }} />
         <Stack.Screen name="webview" options={{ presentation: 'modal', animation: 'slide_from_bottom', title: 'Browser' }} />
         <Stack.Screen name="topup-history" options={{ title: 'Top-up History' }} />

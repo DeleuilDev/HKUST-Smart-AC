@@ -9,7 +9,7 @@ import { Design } from '@/constants/Design';
 import { getAuth, clearAuth } from '@/lib/auth';
 import { backendAuthedFetch } from '@/lib/backend';
 
-export default function WelcomeScreen() {
+export default function IndexScreen() {
   const router = useRouter();
   const [checking, setChecking] = useState(true);
   const [message, setMessage] = useState('Checking session…');

@@ -1,57 +1,5 @@
 {
-  "users": [
-    {
-      "id": "usr_1f64d9abb9c807e1",
-      "createdAt": "2025-09-04T06:18:25.754Z",
-      "updatedAt": "2025-09-04T09:50:50.738Z",
-      "surname": "DELEUIL",
-      "lastname": "Marius Valentin Alexandre",
-      "email": "mvadeleuil@connect.ust.hk",
-      "studentId": "21288837",
-      "casTokenHash": "e2aa3bafa96042f1c3a2b8915cb6fb9bbf7338fac78f520bd901966ba85788a2",
-      "casPayload": {
-        "meta": {
-          "code": 200,
-          "message": "Authentication successful"
-        },
-        "data": {
-          "auth": {
-            "token": "FFPv2AQxNsRTJV0TRpcK"
-          },
-          "student": {
-            "id": "21288837",
-            "student_id": "21288837",
-            "emplid": "21288837",
-            "name": "DELEUIL, Marius Valentin Alexandre",
-            "email": "mvadeleuil@connect.ust.hk",
-            "bldg_cde": "UG9",
-            "bldg_short_nam": "UG Hall IX",
-            "bldg_apt_room_nbr": "003",
-            "bldg_room_bed_nbr": "R",
-            "bldg_floor_nbr": " 0",
-            "bldg_room_type_cde": "HD",
-            "bldg_room_res_type_ind": "R",
-            "check_in_dat": "2025-08-27T11:57:00.000Z",
-            "charge_type": "prepaid"
-          }
-        }
-      },
-      "hallInfo": {
-        "bldg_cde": "UG9",
-        "bldg_short_nam": "UG Hall IX",
-        "bldg_apt_room_nbr": "003",
-        "bldg_room_bed_nbr": "R",
-        "bldg_floor_nbr": " 0",
-        "bldg_room_type_cde": "HD",
-        "bldg_room_res_type_ind": "R"
-      },
-      "acToken": {
-        "value": "FFPv2AQxNsRTJV0TRpcK",
-        "updatedAt": "2025-09-04T09:50:50.738Z"
-      },
-      "sessionVersion": 58
-    }
-  ],
+  "users": [],
   "scheduledActions": [],
   "_meta": {
     "version": 1
