@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View, ScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -13,6 +14,8 @@ import StatPill from '@/components/ui/StatPill';
 import MinutesCard from '@/components/ui/MinutesCard';
 import ACControlsCard from '@/components/ui/ACControlsCard';
 import { Design } from '@/constants/Design';
+import Toast from '@/components/ui/Toast';
+import * as Haptics from 'expo-haptics';
 // Icon usage moved into IconButton
 
 type ApiResult = { status: number; body: any } | null;
@@ -20,6 +23,8 @@ type Status = { power?: 'on' | 'off'; temperature?: number } | null;
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const [heroHeight, setHeroHeight] = useState(0);
   const [auth, setAuth] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,6 +32,8 @@ export default function ProfileScreen() {
   const [status, setStatus] = useState<Status>(null);
   const [balance, setBalance] = useState<number | null>(null);
   const [totalPaid, setTotalPaid] = useState<number | null>(null);
+  const [toast, setToast] = useState<{ visible: boolean; message: string; variant: 'success' | 'error' | 'info' }>({ visible: false, message: '', variant: 'info' });
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -61,6 +68,12 @@ export default function ProfileScreen() {
     router.replace('/');
   };
 
+  const showToast = (message: string, variant: 'success' | 'error' | 'info' = 'info') => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToast({ visible: true, message, variant });
+    toastTimer.current = setTimeout(() => setToast((t) => ({ ...t, visible: false })), 2200);
+  };
+
   const handleApi = async (_label: string, method: 'GET' | 'POST', path: string, body?: any) => {
     setError(null);
     setResult(null);
@@ -83,8 +96,21 @@ export default function ProfileScreen() {
         setBalance(Number((parsed as any)?.balance ?? (parsed as any)?.data?.balance ?? NaN));
         setTotalPaid(Number((parsed as any)?.totalPaidInMinute ?? (parsed as any)?.data?.totalPaidInMinute ?? NaN));
       }
+      // Popup feedback on AC power operations: show server-provided message only
+      if (path.includes('/ac/power')) {
+        const serverMsg =
+          typeof parsed === 'string'
+            ? parsed
+            : (parsed?.message ?? parsed?.body?.message ?? parsed?.data?.message ?? parsed?.msg ?? parsed?.error ?? '');
+        if (serverMsg) {
+          try { Haptics.notificationAsync(res.ok ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Error); } catch {}
+          showToast(String(serverMsg), res.ok ? 'success' : 'error');
+        }
+      }
     } catch (e: any) {
-      setError(e?.message || 'Erreur inconnue');
+      const errMsg = e?.message || 'Erreur inconnue';
+      setError(errMsg);
+      showToast(errMsg, 'error');
     }
   };
 
@@ -104,16 +130,20 @@ export default function ProfileScreen() {
     (serverUser?.lastname as string | undefined) ||
     (serverUser?.firstName as string | undefined) ||
     student?.full_name || student?.name || undefined;
+  const greetingFirst: string | undefined = (greetingName || '')
+    .trim()
+    .split(/\s+/)[0] || undefined;
   const building: string | undefined = (serverUser as any)?.hallInfo?.bldg_short_nam || student?.bldg_short_nam || undefined;
   const room: string | undefined = (serverUser as any)?.hallInfo?.bldg_apt_room_nbr || student?.bldg_apt_room_nbr || undefined;
 
   return (
     <ThemedView style={styles.container}>
       <Stack.Screen options={{ title: 'Dashboard', headerShown: false }} />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-
-      {/* Hero header (styled like login) */}
-      <View style={[styles.hero, { backgroundColor: Design.colors.primary }]}>
+      {/* Fixed Hero header */}
+      <View
+        style={[styles.hero, styles.heroFixed, { backgroundColor: Design.colors.primary, paddingTop: insets.top + 12 }]}
+        onLayout={(e) => setHeroHeight(e.nativeEvent.layout.height)}
+      >
         <View pointerEvents="none" style={StyleSheet.absoluteFillObject}>
           <View style={[styles.pill, { top: 30, left: -30, opacity: 0.18 }]} />
           <View style={[styles.pill, { top: 90, right: -40, opacity: 0.12 }]} />
@@ -121,13 +151,16 @@ export default function ProfileScreen() {
           <View style={[styles.pill, { bottom: -10, right: -30, opacity: 0.16 }]} />
         </View>
         <View style={styles.heroRow}>
-          <View style={{ flex: 1 }}>
-            <ThemedText type="title" style={{ color: 'white' }}>Hello{ greetingName ? `, ${greetingName}` : '' }</ThemedText>
-            <ThemedText style={{ color: 'rgba(255,255,255,0.9)' }}>{building && room ? `${building} • Room ${room}` : 'Signed in'}</ThemedText>
+          <IconButton name="account" onPress={() => { try { router.push('/profile-details'); } catch {} }} />
+          <View style={{ flex: 1, alignItems: 'center' }}>
+            <ThemedText type="title" style={{ color: 'white', textAlign: 'center' }}>Hello{ greetingFirst ? `, ${greetingFirst}` : '' }</ThemedText>
+            <ThemedText style={{ color: 'rgba(255,255,255,0.9)', textAlign: 'center' }}>{building && room ? `${building} • Room ${room}` : 'Signed in'}</ThemedText>
           </View>
           <IconButton name="logout" onPress={logout} />
         </View>
       </View>
+
+      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingTop: heroHeight + 16, paddingBottom: insets.bottom + 24 }]}>
 
       {/* Content cards */}
       <View style={styles.cards}>
@@ -135,7 +168,7 @@ export default function ProfileScreen() {
           <MinutesCard balance={balance ?? undefined} totalPaidInMinute={totalPaid ?? undefined} />
         )}
 
-        <ACControlsCard onAction={handleApi} />
+        <ACControlsCard onAction={handleApi} powerState={status?.power} />
 
         <Card>
           <ThemedText type="subtitle">Refresh</ThemedText>
@@ -153,6 +186,13 @@ export default function ProfileScreen() {
       </View>
 
       </ScrollView>
+
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        variant={toast.variant}
+        onHide={() => setToast((t) => ({ ...t, visible: false }))}
+      />
     </ThemedView>
   );
 }
@@ -187,6 +227,13 @@ const styles = StyleSheet.create({
     paddingTop: 48,
     paddingBottom: 24,
     paddingHorizontal: 16,
+  },
+  heroFixed: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
   },
   heroRow: {
     flexDirection: 'row',

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Stack, useRouter } from 'expo-router';
 
@@ -11,6 +12,7 @@ import { backendAuthedFetch } from '@/lib/backend';
 
 export default function IndexScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [checking, setChecking] = useState(true);
   const [message, setMessage] = useState('Checking session…');
 
@@ -41,7 +43,16 @@ export default function IndexScreen() {
   }, [router]);
 
   return (
-    <ThemedView style={[styles.container, { backgroundColor: Design.colors.primary }] }>
+    <ThemedView
+      style={[
+        styles.container,
+        {
+          backgroundColor: Design.colors.primary,
+          paddingTop: insets.top + Design.spacing.lg,
+          paddingBottom: insets.bottom + Design.spacing.lg,
+        },
+      ]}
+    >
       <Stack.Screen options={{ headerShown: false }} />
 
       {/* Decorative background shapes */}

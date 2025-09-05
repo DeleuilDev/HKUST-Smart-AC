@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Stack, useRouter } from 'expo-router';
 
@@ -10,9 +11,19 @@ import PrimaryButton from '@/components/ui/PrimaryButton';
 
 export default function WelcomeScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   return (
-    <ThemedView style={[styles.container, { backgroundColor: Design.colors.primary }] }>
+    <ThemedView
+      style={[
+        styles.container,
+        {
+          backgroundColor: Design.colors.primary,
+          paddingTop: insets.top + Design.spacing.lg,
+          paddingBottom: insets.bottom + Design.spacing.lg,
+        },
+      ]}
+    >
       <Stack.Screen options={{ headerShown: false }} />
 
       {/* Decorative background shapes */}
@@ -33,8 +44,17 @@ export default function WelcomeScreen() {
         </View>
         <ThemedText type="title" style={styles.brandTitle}>HKUST Smart AC</ThemedText>
 
-        <PrimaryButton title="Login with HKUST Account" onPress={() => router.push('/login')} appearance="solid" variant="primary" />
-        <ThemedText style={styles.subtleCaption}>Use your HKUST credentials to sign in</ThemedText>
+        <PrimaryButton
+          title="Login with HKUST Account"
+          onPress={() => router.push('/login')}
+          appearance="solid"
+          variant="primary"
+          style={{ marginTop: Design.spacing.xl }}
+        />
+      </View>
+      {/* Footer disclaimer anchored to bottom */}
+      <View style={[styles.footer, { bottom: insets.bottom + Design.spacing.lg }]} pointerEvents="none">
+        <ThemedText style={styles.subtleCaption}>HKUST Smart AC was not affiliated with HKUST.</ThemedText>
       </View>
     </ThemedView>
   );
@@ -83,7 +103,16 @@ const styles = StyleSheet.create({
   },
   subtleCaption: {
     marginTop: Design.spacing.xs,
+    textAlign: 'center',
+    fontSize: 12,
     color: 'rgba(255,255,255,0.85)',
   },
+  footer: {
+    position: 'absolute',
+    left: Design.spacing.lg,
+    right: Design.spacing.lg,
+    bottom: Design.spacing.lg,
+    alignItems: 'center',
+    zIndex: 1,
+  },
 });
-
