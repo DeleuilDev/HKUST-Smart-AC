@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet, Switch, Modal, TextInput, Pressable } from 'react-native';
 import Card from '@/components/ui/Card';
 import PrimaryButton from '@/components/ui/PrimaryButton';
@@ -19,6 +19,11 @@ export default function ACControlsCard({
   powerState?: 'on' | 'off';
 }) {
   const [isOn, setIsOn] = useState<boolean>(powerState === 'on');
+  // Sync local switch state when server-provided powerState updates
+  useEffect(() => {
+    if (powerState === 'on') setIsOn(true);
+    else if (powerState === 'off') setIsOn(false);
+  }, [powerState]);
   const [showCustom, setShowCustom] = useState(false);
   const [customMinutes, setCustomMinutes] = useState<number>(30);
   const [customMode, setCustomMode] = useState<'duration' | 'endtime'>('duration');

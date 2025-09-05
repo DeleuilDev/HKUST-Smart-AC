@@ -10,6 +10,7 @@
     "lint": "eslint . --ext .ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.57.0",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
@@ -24,4 +25,3 @@
     "typescript": "~5.8.3"
   }
 }
-

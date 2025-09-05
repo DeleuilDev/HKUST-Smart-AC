@@ -16,14 +16,14 @@ router.use(requireAuth);
  * Resolve user context and extract the CAS token once per request.
  * Responds with an error (404/400) and returns undefined when missing.
  */
-function getACContext(req: Request, res: Response): { userId: string; token: string } | undefined {
+async function getACContext(req: Request, res: Response): Promise<{ userId: string; token: string } | undefined> {
   const { userId } = (req as any).user as { userId: string };
-  const user = db.getUser(userId);
+  const user = await db.getUser(userId);
   if (!user) {
     res.status(404).json({ errorMessage: 'User not found' });
     return undefined;
   }
-  const token = resolveUserAcToken(userId);
+  const token = await resolveUserAcToken(userId);
   if (!token) {
     res.status(400).json({ errorMessage: 'Missing CAS token for user' });
     return undefined;
@@ -33,7 +33,7 @@ function getACContext(req: Request, res: Response): { userId: string; token: str
 
 // Balance proxy
 router.get('/balance', async (req, res) => {
-  const ctx = getACContext(req, res);
+  const ctx = await getACContext(req, res);
   if (!ctx) return;
 
   const result = await acRemoteFetch('/prepaid/ac-balance', ctx.token, { method: 'GET' });
@@ -55,7 +55,7 @@ router.get('/balance', async (req, res) => {
 
 // Current AC status proxy
 router.get('/status', async (req, res) => {
-  const ctx = getACContext(req, res);
+  const ctx = await getACContext(req, res);
   if (!ctx) return;
 
   const result = await acRemoteFetch('/prepaid/ac-status', ctx.token, { method: 'GET' });
@@ -64,7 +64,7 @@ router.get('/status', async (req, res) => {
 
 // Billing cycle detailed information
 router.get('/billing-detail', async (req, res) => {
-  const ctx = getACContext(req, res);
+  const ctx = await getACContext(req, res);
   if (!ctx) return;
 
   const result = await acRemoteFetch('/prepaid/billing-cycle-details', ctx.token, { method: 'GET' });
@@ -73,7 +73,7 @@ router.get('/billing-detail', async (req, res) => {
 
 // Billing cycles overview
 router.get('/billing-cycles', async (req, res) => {
-  const ctx = getACContext(req, res);
+  const ctx = await getACContext(req, res);
   if (!ctx) return;
 
   const result = await acRemoteFetch('/prepaid/billing-cycles', ctx.token, { method: 'GET' });
@@ -82,7 +82,7 @@ router.get('/billing-cycles', async (req, res) => {
 
 // Top-up history for the current user
 router.get('/topup-history', async (req, res) => {
-  const ctx = getACContext(req, res);
+  const ctx = await getACContext(req, res);
   if (!ctx) return;
 
   const result = await acRemoteFetch('/prepaid/topup-history', ctx.token, { method: 'GET' });
@@ -91,7 +91,7 @@ router.get('/topup-history', async (req, res) => {
 
 // Power control with optional auto-off timer (minutes or endDate)
 router.post('/power', async (req, res) => {
-  const ctx = getACContext(req, res);
+  const ctx = await getACContext(req, res);
   if (!ctx) return;
 
   const body = req.body && typeof req.body === 'object' ? req.body : {};

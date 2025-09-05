@@ -6,12 +6,16 @@ settings:
 
 importers:
 
-  .: {}
+  .:
+    dependencies:
+      '@supabase/supabase-js':
+        specifier: ^2.57.0
+        version: 2.57.0
 
   apps/api:
     dependencies:
       '@supabase/supabase-js':
-        specifier: ^2.45.1
+        specifier: ^2.57.0
         version: 2.57.0
       dotenv:
         specifier: ^16.4.5

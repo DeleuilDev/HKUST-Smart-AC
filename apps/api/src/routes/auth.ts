@@ -79,8 +79,8 @@ router.post('/session', (req, res) => {
     }
 
     // Proceed to upsert only after successful verification
-    const { user, created } = db.upsertUser({ firstName, lastName, surname, lastname, email, studentId, room, ext, hallInfo, casPayload, casToken: token }, { bumpSessionVersion: true });
-    const jwt = signUserToken({ userId: user.id }, '7d');
+    const { user, created } = await db.upsertUser({ firstName, lastName, surname, lastname, email, studentId, room, ext, hallInfo, casPayload, casToken: token }, { bumpSessionVersion: true });
+    const jwt = await signUserToken({ userId: user.id }, '7d');
     const response: any = {
       token: jwt,
       isNew: !!created,
@@ -120,9 +120,9 @@ router.post('/session', (req, res) => {
 });
 
 // Lightweight token validation + user info
-router.get('/me', requireAuth, (req, res) => {
+router.get('/me', requireAuth, async (req, res) => {
   const { userId } = (req as any).user as { userId: string };
-  const user = db.getUser(userId);
+  const user = await db.getUser(userId);
   if (!user) return res.status(404).json({ error: 'User not found' });
   res.json({
     ok: true,

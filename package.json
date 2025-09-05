@@ -8,5 +8,8 @@
     "dev:api": "pnpm --filter ./apps/api dev",
     "build": "pnpm -r --if-present build",
     "lint": "pnpm -r --if-present lint"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.0"
   }
 }

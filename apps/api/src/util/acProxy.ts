@@ -22,8 +22,8 @@ export function getCasTokenFromPayload(payload: any): string | undefined {
  * - Prefer stored user.acToken.value when present
  * - Fallback to extracting from the saved casPayload
  */
-export function resolveUserAcToken(userId: string): string | undefined {
-  const user = db.getUser(userId) as any;
+export async function resolveUserAcToken(userId: string): Promise<string | undefined> {
+  const user = await db.getUser(userId) as any;
   if (!user) return undefined;
   const direct = user?.acToken?.value;
   if (typeof direct === 'string' && direct.length >= 6) return direct;

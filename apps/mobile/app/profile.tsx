@@ -1,7 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -35,6 +36,30 @@ export default function ProfileScreen() {
   const [toast, setToast] = useState<{ visible: boolean; message: string; variant: 'success' | 'error' | 'info' }>({ visible: false, message: '', variant: 'info' });
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const fetchStatusAndBalance = useCallback(async () => {
+    try {
+      const [sRes, bRes] = await Promise.all([
+        backendAuthedFetch('/ac/status'),
+        backendAuthedFetch('/ac/balance'),
+      ]);
+      if (sRes.status === 401 || sRes.status === 403 || bRes.status === 401 || bRes.status === 403) {
+        try { await clearAuth(); } catch {}
+        setError('Token expiré/invalide. Veuillez vous reconnecter.');
+        router.replace('/welcome');
+        return;
+      }
+      const sTxt = await sRes.text();
+      const bTxt = await bRes.text();
+      const s = safeJson(sTxt);
+      const b = safeJson(bTxt);
+      setStatus(parseServerStatusToUi(s));
+      setBalance(Number(b?.balance ?? b?.data?.balance ?? NaN));
+      setTotalPaid(Number(b?.totalPaidInMinute ?? b?.data?.totalPaidInMinute ?? NaN));
+    } catch (_) {
+      // no-op: errors handled elsewhere when user triggers actions
+    }
+  }, [router]);
+
   useEffect(() => {
     (async () => {
       const a = await getAuth();
@@ -50,18 +75,26 @@ export default function ProfileScreen() {
       setAuth(a);
       setLoading(false);
       try {
-        const [sRes, bRes] = await Promise.all([
-          backendAuthedFetch('/ac/status'),
-          backendAuthedFetch('/ac/balance'),
-        ]);
-        const s = safeJson(await sRes.text());
-        const b = safeJson(await bRes.text());
-        setStatus({ power: s?.power ?? s?.data?.power, temperature: s?.temperature ?? s?.data?.temperature });
-        setBalance(Number(b?.balance ?? b?.data?.balance ?? NaN));
-        setTotalPaid(Number(b?.totalPaidInMinute ?? b?.data?.totalPaidInMinute ?? NaN));
+        await fetchStatusAndBalance();
       } catch (_) {}
     })();
-  }, [router]);
+  }, [router, fetchStatusAndBalance]);
+
+  // Refresh when the screen is focused, and poll every 30s
+  useFocusEffect(
+    useCallback(() => {
+      let interval: ReturnType<typeof setInterval> | null = null;
+      // Immediate refresh on focus
+      fetchStatusAndBalance();
+      // Poll every 30 seconds
+      interval = setInterval(() => {
+        fetchStatusAndBalance();
+      }, 30_000);
+      return () => {
+        if (interval) clearInterval(interval);
+      };
+    }, [fetchStatusAndBalance])
+  );
 
   const logout = async () => {
     await clearAuth();
@@ -91,7 +124,7 @@ export default function ProfileScreen() {
         try { await clearAuth(); } catch {}
         router.replace('/welcome');
       }
-      if (path.includes('/ac/status')) setStatus(parsed as any);
+      if (path.includes('/ac/status')) setStatus(parseServerStatusToUi(parsed));
       if (path.includes('/ac/balance')) {
         setBalance(Number((parsed as any)?.balance ?? (parsed as any)?.data?.balance ?? NaN));
         setTotalPaid(Number((parsed as any)?.totalPaidInMinute ?? (parsed as any)?.data?.totalPaidInMinute ?? NaN));
@@ -213,6 +246,29 @@ function tryParse(txt: string) {
 
 function safeJson(txt: string) {
   try { return JSON.parse(txt); } catch { return {}; }
+}
+
+// Map raw /ac/status payload to UI-friendly Status
+function parseServerStatusToUi(input: any): Status {
+  if (!input || typeof input !== 'object') return { power: undefined, temperature: undefined };
+  // Possible shapes after normalization: { ac_status: { DisconnectRelay, ... } }
+  // Back-compat fallbacks also considered.
+  const ac = input?.ac_status || input?.acStatus || input?.data?.ac_status || input?.data?.acStatus || input;
+
+  // Interpret DisconnectRelay: true => ON, false => OFF (inverted)
+  const disconnectRelay = ac?.DisconnectRelay ?? ac?.disconnectRelay;
+  let power: 'on' | 'off' | undefined = undefined;
+  if (typeof disconnectRelay === 'boolean') {
+    power = disconnectRelay ? 'on' : 'off';
+  } else if (typeof ac?.power === 'string') {
+    const p = String(ac.power).toLowerCase();
+    if (p === 'on' || p === 'off') power = p;
+  } else if (typeof ac?.power === 'number') {
+    power = ac.power === 1 ? 'on' : ac.power === 0 ? 'off' : undefined;
+  }
+
+  const temperature = typeof ac?.temperature === 'number' ? ac.temperature : undefined;
+  return { power, temperature };
 }
 
 const styles = StyleSheet.create({

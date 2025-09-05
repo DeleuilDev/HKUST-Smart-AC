@@ -7,26 +7,27 @@ type Timer = ReturnType<typeof setTimeout>;
 export class InProcessScheduler {
   private timers = new Map<string, Timer>();
 
-  start() {
+  async start() {
     // schedule all pending actions on boot
-    const pending = db.listPendingActions();
-    for (const act of pending) this.schedule(act);
+    const pending = await db.listPendingActions();
+    for (const act of pending) await this.schedule(act);
   }
 
-  schedule(action: ScheduledAction) {
+  async schedule(action: ScheduledAction) {
     // clear existing
-    this.cancel(action.id);
+    await this.cancel(action.id);
     const eta = new Date(action.scheduledAt).getTime() - Date.now();
     const delay = Math.max(0, eta);
     const timer = setTimeout(async () => {
       try {
-        db.updateScheduledAction(action.id, { status: 'running' });
-        const fresh = db.getScheduledAction(action.id)!;
+        await db.updateScheduledAction(action.id, { status: 'running' });
+        const fresh = await db.getScheduledAction(action.id);
+        if (!fresh) return;
         const result = await executeAction(fresh);
         if (result.ok) {
-          db.updateScheduledAction(action.id, { status: 'completed', executedAt: new Date().toISOString(), lastError: undefined });
+          await db.updateScheduledAction(action.id, { status: 'completed', executedAt: new Date().toISOString(), lastError: undefined });
         } else {
-          db.updateScheduledAction(action.id, { status: 'failed', executedAt: new Date().toISOString(), lastError: result.error });
+          await db.updateScheduledAction(action.id, { status: 'failed', executedAt: new Date().toISOString(), lastError: result.error });
         }
       } finally {
         this.timers.delete(action.id);
@@ -35,7 +36,7 @@ export class InProcessScheduler {
     this.timers.set(action.id, timer);
   }
 
-  cancel(id: string) {
+  async cancel(id: string) {
     const t = this.timers.get(id);
     if (t) {
       clearTimeout(t);
