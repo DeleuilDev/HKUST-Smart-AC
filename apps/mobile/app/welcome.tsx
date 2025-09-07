@@ -18,8 +18,7 @@ export default function WelcomeScreen() {
       style={[
         styles.container,
         {
-          // Make login screen high-contrast: white background, violet text/icon
-          backgroundColor: '#FFFFFF',
+          backgroundColor: Design.colors.primary,
           paddingTop: insets.top + Design.spacing.lg,
           paddingBottom: insets.bottom + Design.spacing.lg,
         },
@@ -27,30 +26,30 @@ export default function WelcomeScreen() {
     >
       <Stack.Screen options={{ headerShown: false }} />
 
-      {/* Decorative background shapes in faint violet */}
+      {/* Decorative background shapes */}
       <View pointerEvents="none" style={StyleSheet.absoluteFillObject}>
-        <View style={[styles.pill, { top: 80, left: -30, opacity: 0.12 }]} />
-        <View style={[styles.pill, { top: 180, right: -40, opacity: 0.08 }]} />
-        <View style={[styles.pill, { bottom: 120, left: -20, opacity: 0.08 }]} />
-        <View style={[styles.pill, { bottom: 40, right: -30, opacity: 0.10 }]} />
-        <View style={[styles.diag, { top: 70, left: 60, opacity: 0.12 }]} />
-        <View style={[styles.diag, { top: 140, right: 50, opacity: 0.08 }]} />
-        <View style={[styles.diag, { bottom: 160, left: 40, opacity: 0.08 }]} />
-        <View style={[styles.diag, { bottom: 60, right: 30, opacity: 0.10 }]} />
+        <View style={[styles.pill, { top: 80, left: -30, opacity: 0.18 }]} />
+        <View style={[styles.pill, { top: 180, right: -40, opacity: 0.12 }]} />
+        <View style={[styles.pill, { bottom: 120, left: -20, opacity: 0.10 }]} />
+        <View style={[styles.pill, { bottom: 40, right: -30, opacity: 0.16 }]} />
+        <View style={[styles.diag, { top: 70, left: 60 }]} />
+        <View style={[styles.diag, { top: 140, right: 50 }]} />
+        <View style={[styles.diag, { bottom: 160, left: 40 }]} />
+        <View style={[styles.diag, { bottom: 60, right: 30 }]} />
       </View>
 
       <View style={styles.centerWrap}>
         <View style={styles.logoCircle}>
-          <MaterialCommunityIcons name="air-conditioner" size={96} color={Design.colors.primary} />
+          <MaterialCommunityIcons name="air-conditioner" size={96} color="#FFFFFF" />
         </View>
         <ThemedText type="title" style={styles.brandTitle}>HKUST Smart AC</ThemedText>
 
         <PrimaryButton
           title="Login with HKUST Account"
           onPress={() => router.push('/login')}
-          appearance="solid"
+          appearance="soft"
           variant="primary"
-          style={{ marginTop: Design.spacing.xl }}
+          style={{ marginTop: Design.spacing.xl, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: Design.colors.border }}
         />
       </View>
       {/* Footer disclaimer anchored to bottom */}
@@ -75,7 +74,7 @@ const styles = StyleSheet.create({
     gap: Design.spacing.lg,
   },
   brandTitle: {
-    color: Design.colors.primary,
+    color: 'white',
   },
   logoCircle: {
     width: 128,
@@ -83,9 +82,7 @@ const styles = StyleSheet.create({
     borderRadius: 64,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: Design.colors.border,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     ...Design.shadow.floating,
   },
   pill: {
@@ -93,14 +90,14 @@ const styles = StyleSheet.create({
     width: 200,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'rgba(108,92,231,0.15)',
+    backgroundColor: 'rgba(255,255,255,0.25)',
     transform: [{ rotate: '45deg' }],
   },
   diag: {
     position: 'absolute',
     width: 2,
     height: 180,
-    backgroundColor: 'rgba(108,92,231,0.15)',
+    backgroundColor: 'rgba(255,255,255,0.25)',
     borderRadius: 1,
     transform: [{ rotate: '45deg' }],
   },
@@ -108,7 +105,7 @@ const styles = StyleSheet.create({
     marginTop: Design.spacing.xs,
     textAlign: 'center',
     fontSize: 12,
-    color: Design.colors.primary,
+    color: 'rgba(255,255,255,0.85)',
   },
   footer: {
     position: 'absolute',
