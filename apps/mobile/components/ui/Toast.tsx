@@ -58,9 +58,9 @@ export default function Toast({
   };
 
   const colors = {
-    success: { icon: Design.colors.statusPositive, bg: '#FFFFFF', border: '#E6F4EA' },
-    error: { icon: Design.colors.statusNegative, bg: '#FFFFFF', border: '#FDECEC' },
-    info: { icon: Design.colors.primary, bg: '#FFFFFF', border: '#ECECEC' },
+    success: { icon: Design.colors.statusPositive, bg: Design.colors.surfaceElevated, border: Design.colors.statusPositiveBg },
+    error: { icon: Design.colors.statusNegative, bg: Design.colors.surfaceElevated, border: Design.colors.statusNegativeBg },
+    info: { icon: Design.colors.primary, bg: Design.colors.surfaceElevated, border: Design.colors.border },
   }[variant];
 
   const iconName = variant === 'success' ? 'check-circle' : variant === 'error' ? 'alert-circle' : 'information';

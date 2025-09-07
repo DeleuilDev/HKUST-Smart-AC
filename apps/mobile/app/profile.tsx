@@ -247,7 +247,7 @@ export default function ProfileScreen() {
           <ACControlsCard onAction={handleApi} powerState={status?.power} disabled={!!smartConfig?.active} />
         </View>
 
-        <Card style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#ECECEC' }}>
+        <Card style={{ backgroundColor: Design.colors.surfaceElevated, borderWidth: 1, borderColor: Design.colors.border }}>
           <View style={styles.advHeaderRow}>
             <View style={styles.advIconBadge}>
               <MaterialCommunityIcons name="calendar-multiple-check" size={22} color={Design.colors.primary} />
@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F1F1F4',
+    backgroundColor: Design.colors.muted,
   },
   advHelper: { color: Design.colors.textSecondary, marginTop: 2 },
   advGrid: { flexDirection: 'row', flexWrap: 'nowrap', gap: 8, justifyContent: 'space-between' },
@@ -417,9 +417,9 @@ const styles = StyleSheet.create({
     width: '32%',
     alignItems: 'center',
     paddingVertical: 14,
-    backgroundColor: '#F7F7FA',
+    backgroundColor: Design.colors.mutedSurface,
     borderWidth: 1,
-    borderColor: '#ECECEC',
+    borderColor: Design.colors.border,
     borderRadius: 16,
   },
   featureIconCircle: {
@@ -428,7 +428,7 @@ const styles = StyleSheet.create({
     borderRadius: 26,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F1F1F4',
+    backgroundColor: Design.colors.muted,
     marginBottom: 8,
   },
   featureLabel: { fontWeight: '700', color: Design.colors.textPrimary },

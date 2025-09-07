@@ -17,12 +17,22 @@ export type BackendOptions = RequestInit;
 
 export async function backendFetch(path: string, options: BackendOptions = {}) {
   const url = /^https?:\/\//i.test(path) ? path : `${BACKEND_BASE}${path}`;
+  const method = String(options.method || 'GET').toUpperCase();
+  const hasBody = options.body != null && method !== 'GET' && method !== 'HEAD';
+  const mergedHeaders: Record<string, string> = {
+    Accept: 'application/json',
+    ...(options.headers as any),
+  };
+  // Set Content-Type only when sending a body
+  if (hasBody) {
+    if (!('Content-Type' in mergedHeaders)) mergedHeaders['Content-Type'] = 'application/json';
+  } else {
+    // Ensure we don't send Content-Type on GET/HEAD to avoid strict proxies/WAFs quirks
+    if ('Content-Type' in mergedHeaders) delete (mergedHeaders as any)['Content-Type'];
+  }
   const res = await fetch(url, {
     ...options,
-    headers: {
-      ...DEFAULT_HEADERS,
-      ...(options.headers as any),
-    },
+    headers: mergedHeaders,
   });
   return res;
 }
@@ -31,12 +41,19 @@ export async function backendAuthedFetch(path: string, options: BackendOptions =
   const auth = await getAuth();
   const token = auth?.server?.token;
   const url = /^https?:\/\//i.test(path) ? path : `${BACKEND_BASE}${path}`;
-  const headers: Record<string, string> = {
-    ...DEFAULT_HEADERS,
+  const method = String(options.method || 'GET').toUpperCase();
+  const hasBody = options.body != null && method !== 'GET' && method !== 'HEAD';
+  const mergedHeaders: Record<string, string> = {
+    Accept: 'application/json',
     ...(options.headers as any),
   };
-  if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(url, { ...options, headers });
+  if (hasBody) {
+    if (!('Content-Type' in mergedHeaders)) mergedHeaders['Content-Type'] = 'application/json';
+  } else {
+    if ('Content-Type' in mergedHeaders) delete (mergedHeaders as any)['Content-Type'];
+  }
+  if (token) mergedHeaders.Authorization = `Bearer ${token}`;
+  const res = await fetch(url, { ...options, headers: mergedHeaders });
   return res;
 }
 

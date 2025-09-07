@@ -153,15 +153,15 @@ export default function WeeklyScheduleScreen() {
 
           <View style={styles.legendRow}>
             <View style={styles.legendItem}>
-              <View style={[styles.legendSwatch, { backgroundColor: '#EBE9FF', borderColor: Design.colors.accent }]} />
+              <View style={[styles.legendSwatch, { backgroundColor: Design.colors.accentTintBg, borderColor: Design.colors.accent }]} />
               <ThemedText style={styles.helper}>Active</ThemedText>
             </View>
             <View style={styles.legendItem}>
-              <View style={[styles.legendSwatch, { backgroundColor: '#FFFFFF', borderColor: '#ECECEC' }]} />
+              <View style={[styles.legendSwatch, { backgroundColor: Design.colors.surfaceElevated, borderColor: Design.colors.border }]} />
               <ThemedText style={styles.helper}>Inactive</ThemedText>
             </View>
             <View style={styles.legendItem}>
-              <View style={[styles.legendSwatch, { backgroundColor: '#FFFFFF', borderColor: Design.colors.primary, borderWidth: 2 }]} />
+              <View style={[styles.legendSwatch, { backgroundColor: Design.colors.surfaceElevated, borderColor: Design.colors.primary, borderWidth: 2 }]} />
               <ThemedText style={styles.helper}>Now</ThemedText>
             </View>
           </View>
@@ -214,7 +214,7 @@ function safeJson(txt: string) { try { return JSON.parse(txt); } catch { return 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Design.colors.background },
   content: { padding: 16, gap: 16, paddingBottom: 24 },
-  card: { gap: 12, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#ECECEC', paddingBottom: 12 },
+  card: { gap: 12, backgroundColor: Design.colors.surfaceElevated, borderWidth: 1, borderColor: Design.colors.border, paddingBottom: 12 },
   headerWrap: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 4 },
   iconBadge: {
     width: 40,
@@ -222,23 +222,23 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F1F1F4',
+    backgroundColor: Design.colors.muted,
   },
   rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   actionsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' },
-  segmentRow: { flexDirection: 'row', gap: 8, backgroundColor: '#F1F1F4', padding: 4, borderRadius: Design.radii.pill },
+  segmentRow: { flexDirection: 'row', gap: 8, backgroundColor: Design.colors.muted, padding: 4, borderRadius: Design.radii.pill },
   segment: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: Design.radii.pill },
-  segmentActive: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E5E5EA' },
+  segmentActive: { backgroundColor: Design.colors.surfaceElevated, borderWidth: 1, borderColor: Design.colors.border },
   segmentLabel: { color: Design.colors.textSecondary },
   segmentLabelActive: { color: Design.colors.textPrimary, fontWeight: '700' },
   headerRow: { flexDirection: 'row' },
-  dayHeader: { width: 90, paddingVertical: 8, alignItems: 'center', borderBottomWidth: 1, borderColor: '#ECECEC' },
-  dayHeaderActive: { backgroundColor: '#F7F7FA', borderBottomColor: Design.colors.accent },
+  dayHeader: { width: 90, paddingVertical: 8, alignItems: 'center', borderBottomWidth: 1, borderColor: Design.colors.border },
+  dayHeaderActive: { backgroundColor: Design.colors.mutedSurface, borderBottomColor: Design.colors.accent },
   row: { flexDirection: 'row' },
-  timeCell: { width: 70, paddingVertical: 8, paddingHorizontal: 8, alignItems: 'flex-end', borderRightWidth: 1, borderColor: '#ECECEC' },
+  timeCell: { width: 70, paddingVertical: 8, paddingHorizontal: 8, alignItems: 'flex-end', borderRightWidth: 1, borderColor: Design.colors.border },
   timeLabel: { color: Design.colors.textSecondary },
-  cell: { width: 90, height: 28, borderWidth: 1, borderColor: '#ECECEC', backgroundColor: '#FFFFFF' },
-  cellActive: { backgroundColor: '#EBE9FF', borderColor: Design.colors.accent },
+  cell: { width: 90, height: 28, borderWidth: 1, borderColor: Design.colors.border, backgroundColor: Design.colors.surfaceElevated },
+  cellActive: { backgroundColor: Design.colors.accentTintBg, borderColor: Design.colors.accent },
   cellNow: { borderColor: Design.colors.primary, borderWidth: 2 },
   legendRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },

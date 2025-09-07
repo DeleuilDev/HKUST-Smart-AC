@@ -66,7 +66,7 @@ export default function ACControlsCard({
   };
 
   return (
-    <Card style={[styles.card, { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#ECECEC' }]}>
+    <Card style={[styles.card, { backgroundColor: Design.colors.surfaceElevated, borderWidth: 1, borderColor: Design.colors.border }]}>
       <View style={styles.headerRow}>
         <View style={styles.iconBadge}>
           <MaterialCommunityIcons name="air-conditioner" size={22} color={Design.colors.primary} />
@@ -114,7 +114,7 @@ export default function ACControlsCard({
               ))}
             </View>
             <View style={styles.pickerRow}>
-              <IconButton name="minus" onPress={() => setCustomMinutes(m => clampMinutes((m || 0) - 5))} color={Design.colors.textPrimary} background={'#F1F1F4'} />
+              <IconButton name="minus" onPress={() => setCustomMinutes(m => clampMinutes((m || 0) - 5))} color={Design.colors.textPrimary} background={Design.colors.muted} />
               <TextInput
                 value={String(customMinutes || '')}
                 onChangeText={(t) => setCustomMinutes(clampMinutes(parseInt(t.replace(/\D+/g, '') || '0', 10)))}
@@ -125,7 +125,7 @@ export default function ACControlsCard({
                 placeholderTextColor="#A0A0A0"
                 maxLength={3}
               />
-              <IconButton name="plus" onPress={() => setCustomMinutes(m => clampMinutes((m || 0) + 5))} color={Design.colors.textPrimary} background={'#F1F1F4'} />
+              <IconButton name="plus" onPress={() => setCustomMinutes(m => clampMinutes((m || 0) + 5))} color={Design.colors.textPrimary} background={Design.colors.muted} />
             </View>
             <ThemedText style={{ textAlign: 'center', color: Design.colors.textSecondary }}>Range: 5–240 min</ThemedText>
 
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F1F1F4',
+    backgroundColor: Design.colors.muted,
   },
   switchWrap: { alignItems: 'center', paddingHorizontal: 2 },
   switchScaled: { transform: [{ scaleX: 1.18 }, { scaleY: 1.18 }] },
@@ -164,22 +164,22 @@ const styles = StyleSheet.create({
     width: 120,
     height: 56,
     borderRadius: Design.radii.pill,
-    backgroundColor: '#F7F7FA',
+    backgroundColor: Design.colors.mutedSurface,
     borderWidth: 1,
-    borderColor: '#ECECEC',
+    borderColor: Design.colors.border,
     textAlign: 'center',
     fontSize: 24,
     fontWeight: '700',
     color: Design.colors.textPrimary,
   },
-  segmentRow: { flexDirection: 'row', gap: 8, backgroundColor: '#F1F1F4', padding: 4, borderRadius: Design.radii.pill },
+  segmentRow: { flexDirection: 'row', gap: 8, backgroundColor: Design.colors.muted, padding: 4, borderRadius: Design.radii.pill },
   segment: { flex: 1, paddingVertical: 8, borderRadius: Design.radii.pill, alignItems: 'center' },
-  segmentActive: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E5E5EA' },
+  segmentActive: { backgroundColor: Design.colors.surfaceElevated, borderWidth: 1, borderColor: Design.colors.border },
   segmentLabel: { color: Design.colors.textSecondary },
   segmentLabelActive: { color: Design.colors.textPrimary, fontWeight: '700' },
   presetsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between' },
-  presetChip: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: Design.radii.pill, backgroundColor: '#F7F7FA', borderWidth: 1, borderColor: '#ECECEC' },
-  presetChipActive: { backgroundColor: '#EBE9FF', borderColor: Design.colors.accent },
+  presetChip: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: Design.radii.pill, backgroundColor: Design.colors.mutedSurface, borderWidth: 1, borderColor: Design.colors.border },
+  presetChipActive: { backgroundColor: Design.colors.accentTintBg, borderColor: Design.colors.accent },
   presetLabel: { fontSize: 16, color: Design.colors.textSecondary },
   presetLabelActive: { color: Design.colors.primary, fontWeight: '700' },
   endRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },

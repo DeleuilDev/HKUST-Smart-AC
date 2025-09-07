@@ -198,7 +198,7 @@ function NumberField({ label, value, onChange, step = 1, disabled }: { label: st
     <View style={{ width: '100%' }}>
       <ThemedText style={styles.helper}>{label}</ThemedText>
       <View style={styles.stepRow}>
-        <IconButton name="minus" onPress={disabled ? () => {} : dec} color={Design.colors.textPrimary} background={'#F1F1F4'} />
+        <IconButton name="minus" onPress={disabled ? () => {} : dec} color={Design.colors.textPrimary} background={Design.colors.muted} />
         <TextInput
           value={text}
           onChangeText={onTextChange}
@@ -210,7 +210,7 @@ function NumberField({ label, value, onChange, step = 1, disabled }: { label: st
           placeholderTextColor="#A0A0A0"
           editable={!disabled}
         />
-        <IconButton name="plus" onPress={disabled ? () => {} : inc} color={Design.colors.textPrimary} background={'#F1F1F4'} />
+        <IconButton name="plus" onPress={disabled ? () => {} : inc} color={Design.colors.textPrimary} background={Design.colors.muted} />
       </View>
     </View>
   );
@@ -221,7 +221,7 @@ function safeJson(txt: string) { try { return JSON.parse(txt); } catch { return 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Design.colors.background },
   content: { padding: 16, gap: 16, paddingBottom: 24 },
-  card: { gap: 12, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#ECECEC' },
+  card: { gap: 12, backgroundColor: Design.colors.surfaceElevated, borderWidth: 1, borderColor: Design.colors.border },
   cardDisabled: { opacity: 0.6 },
   helper: { color: Design.colors.textSecondary },
   rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
@@ -230,9 +230,9 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 56,
     borderRadius: Design.radii.pill,
-    backgroundColor: '#F7F7FA',
+    backgroundColor: Design.colors.mutedSurface,
     borderWidth: 1,
-    borderColor: '#ECECEC',
+    borderColor: Design.colors.border,
     textAlign: 'center',
     fontSize: 20,
     fontWeight: '700',
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
   infoBox: {
     borderWidth: 2,
     borderColor: Design.colors.accent,
-    backgroundColor: '#EBE9FF',
+    backgroundColor: Design.colors.accentTintBg,
     borderRadius: Design.radii.large,
     padding: 12,
     gap: 4,
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
   infoSecondary: { color: Design.colors.textSecondary },
   iconCompact: { width: 36, height: 36, borderRadius: 18 },
   pillRow: { flexDirection: 'row' },
-  savingsPill: { backgroundColor: '#EBE9FF', borderColor: Design.colors.accent, borderWidth: 1, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 999 },
+  savingsPill: { backgroundColor: Design.colors.accentTintBg, borderColor: Design.colors.accent, borderWidth: 1, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 999 },
   savingsText: { color: Design.colors.primary, fontWeight: '700' },
 });
 

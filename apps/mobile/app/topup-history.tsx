@@ -77,7 +77,7 @@ function HistoryCard({ item }: { item: Entry }) {
   return (
     <Card style={[styles.itemCard]}>
       <View style={styles.itemRow}>
-        <View style={[styles.iconCircle, { backgroundColor: '#ECEAFD' }]}>
+        <View style={[styles.iconCircle, { backgroundColor: Design.colors.accentTintBg }]}>
           <MaterialCommunityIcons name="credit-card-check-outline" size={22} color={Design.colors.primary} />
         </View>
         <View style={{ flex: 1 }}>
@@ -89,7 +89,7 @@ function HistoryCard({ item }: { item: Entry }) {
             <ThemedText style={{ color: Design.colors.textSecondary }}>{dateStr}</ThemedText>
             <View style={styles.rowGap}>
               {item.cycle ? (
-                <View style={[styles.chip, { backgroundColor: '#F1F0FF' }]}>
+                <View style={[styles.chip, { backgroundColor: Design.colors.accentTintBg }]}>
                   <ThemedText style={[styles.chipText, { color: Design.colors.primary }]}>{item.cycle}</ThemedText>
                 </View>
               ) : null}
@@ -230,9 +230,9 @@ function computeSummary(items: Entry[]) {
 
 function statusColors(status?: string) {
   const s = (status || '').toLowerCase();
-  if (s.includes('paid') || s.includes('success')) return { bg: '#E8F5E9', fg: Design.colors.statusPositive };
-  if (s.includes('fail') || s.includes('error')) return { bg: '#FFEBEE', fg: Design.colors.statusNegative };
-  return { bg: '#FFF8E1', fg: '#E65100' };
+  if (s.includes('paid') || s.includes('success')) return { bg: Design.colors.statusPositiveBg, fg: Design.colors.statusPositive };
+  if (s.includes('fail') || s.includes('error')) return { bg: Design.colors.statusNegativeBg, fg: Design.colors.statusNegative };
+  return { bg: Design.colors.statusWarningBg, fg: Design.colors.statusWarning };
 }
 
 function prettyStatus(status?: string) {
@@ -248,9 +248,9 @@ const styles = StyleSheet.create({
   rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   rowGap: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   itemCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Design.colors.surfaceElevated,
     borderWidth: 1,
-    borderColor: '#ECECEC',
+    borderColor: Design.colors.border,
     gap: 8,
   },
   itemRow: { flexDirection: 'row', gap: 12, alignItems: 'center' },
@@ -272,9 +272,9 @@ const styles = StyleSheet.create({
   metaLabel: { color: Design.colors.textSecondary },
   metaValue: { fontWeight: '500' },
   summaryCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Design.colors.surfaceElevated,
     borderWidth: 1,
-    borderColor: '#ECECEC',
+    borderColor: Design.colors.border,
     marginBottom: 8,
     gap: 12,
   },

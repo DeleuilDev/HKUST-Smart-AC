@@ -119,9 +119,9 @@ export default function ScheduleAdvancedScreen() {
           <View style={styles.rowBetween}>
             <ThemedText>Weeks</ThemedText>
             <View style={styles.stepRow}>
-              <IconButton name="minus" onPress={() => setWeeksCount((n) => Math.max(1, n-1))} color={Design.colors.textPrimary} background={'#F1F1F4'} />
+              <IconButton name="minus" onPress={() => setWeeksCount((n) => Math.max(1, n-1))} color={Design.colors.textPrimary} background={Design.colors.muted} />
               <ThemedText style={styles.weeksVal}>{weeksCount}</ThemedText>
-              <IconButton name="plus" onPress={() => setWeeksCount((n) => Math.min(52, n+1))} color={Design.colors.textPrimary} background={'#F1F1F4'} />
+              <IconButton name="plus" onPress={() => setWeeksCount((n) => Math.min(52, n+1))} color={Design.colors.textPrimary} background={Design.colors.muted} />
             </View>
           </View>
           <PrimaryButton title={submittingWeekly ? 'Scheduling…' : 'Create Weekly Plan'} onPress={postWeekly} disabled={submittingWeekly} variant="primary" appearance="solid" />
@@ -173,11 +173,11 @@ function safeJson(txt: string) { try { return JSON.parse(txt); } catch { return 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Design.colors.background },
   content: { padding: 16, gap: 16, paddingBottom: 24 },
-  card: { gap: 12, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#ECECEC' },
+  card: { gap: 12, backgroundColor: Design.colors.surfaceElevated, borderWidth: 1, borderColor: Design.colors.border },
   helper: { color: Design.colors.textSecondary },
   daysRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  dayChip: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: Design.radii.pill, backgroundColor: '#F7F7FA', borderWidth: 1, borderColor: '#ECECEC' },
-  dayChipActive: { backgroundColor: '#EBE9FF', borderColor: Design.colors.accent },
+  dayChip: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: Design.radii.pill, backgroundColor: Design.colors.mutedSurface, borderWidth: 1, borderColor: Design.colors.border },
+  dayChipActive: { backgroundColor: Design.colors.accentTintBg, borderColor: Design.colors.accent },
   dayLabel: { color: Design.colors.textSecondary },
   dayLabelActive: { color: Design.colors.primary, fontWeight: '700' },
   rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
@@ -186,4 +186,3 @@ const styles = StyleSheet.create({
   timeValue: { fontSize: 20, fontWeight: '700', color: Design.colors.textPrimary },
   weeksVal: { fontSize: 18, fontWeight: '700' },
 });
-

@@ -76,7 +76,7 @@ export default function MinutesCard({ balance, totalPaidInMinute }: { balance?: 
   };
 
   return (
-    <Card style={[styles.card, { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#ECECEC' }]}>
+    <Card style={[styles.card, { backgroundColor: Design.colors.surfaceElevated, borderWidth: 1, borderColor: Design.colors.border }]}>
       <View style={styles.row}>
         <View style={{ alignItems: 'center' }}>
           <Pressable onPress={toggleDisplayFormat} style={styles.graphContainer}>
@@ -85,7 +85,7 @@ export default function MinutesCard({ balance, totalPaidInMinute }: { balance?: 
               width={12}
               fill={pct * 100}
               tintColor={Design.colors.primary}
-              backgroundColor={'#ECEAFD'}
+              backgroundColor={Design.colors.accentTintBg}
               lineCap="round"
               rotation={0}
             >
@@ -112,7 +112,7 @@ export default function MinutesCard({ balance, totalPaidInMinute }: { balance?: 
           </ThemedText>
           <View style={styles.actionsRow}>
             <PrimaryButton title="Top up" onPress={openTopUp} appearance="solid" variant="primary" size="sm" iconLeft="credit-card-plus-outline" />
-            <IconButton name="ticket-confirmation-outline" onPress={openTopUpHistory} color={Design.colors.textPrimary} background={'#F1F1F4'} />
+            <IconButton name="ticket-confirmation-outline" onPress={openTopUpHistory} color={Design.colors.textPrimary} background={Design.colors.muted} />
           </View>
         </View>
       </View>

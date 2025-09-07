@@ -28,12 +28,20 @@ export default function PrimaryButton({
   style?: ViewStyle;
   disabled?: boolean;
 }) {
-  let bg = '#FFFFFF';
+  let bg = Design.colors.surfaceElevated;
   let color = Design.colors.textPrimary;
 
   if (appearance === 'soft') {
-    bg = variant === 'primary' ? '#FFFFFF' : variant === 'danger' ? '#FFEBEE' : '#FFFFFF';
-    color = variant === 'primary' ? Design.colors.primary : variant === 'danger' ? '#E53935' : Design.colors.textPrimary;
+    if (variant === 'primary') {
+      bg = Design.colors.accentTintBg;
+      color = Design.colors.primary;
+    } else if (variant === 'danger') {
+      bg = Design.colors.statusNegativeBg;
+      color = Design.colors.statusNegative;
+    } else {
+      bg = Design.colors.surfaceElevated;
+      color = Design.colors.textPrimary;
+    }
   } else if (appearance === 'solid') {
     bg = variant === 'primary' ? Design.colors.primary : variant === 'danger' ? Design.colors.statusNegative : Design.colors.textPrimary;
     color = '#FFFFFF';

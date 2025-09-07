@@ -131,7 +131,7 @@ export default function ScheduleCard() {
   const inFuture = scheduledDate.getTime() > Date.now();
 
   return (
-    <Card style={[styles.card, { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#ECECEC' }]}>
+    <Card style={[styles.card, { backgroundColor: Design.colors.surfaceElevated, borderWidth: 1, borderColor: Design.colors.border }]}>
       <View style={styles.headerRow}>
         <View style={styles.iconBadge}>
           <MaterialCommunityIcons name="calendar-clock" size={22} color={Design.colors.primary} />
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F1F1F4',
+    backgroundColor: Design.colors.muted,
   },
   helper: { color: Design.colors.textSecondary },
   segmentRow: { flexDirection: 'row', gap: 8 },
@@ -233,6 +233,6 @@ const styles = StyleSheet.create({
   stepCol: { alignItems: 'center', gap: 6 },
   timeUnit: { fontSize: 12, color: Design.colors.textSecondary, marginBottom: 4 },
   timeValue: { fontSize: 28, fontWeight: '700', color: Design.colors.textPrimary },
-  upItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 8, borderRadius: 10, backgroundColor: '#F7F7FA', borderWidth: 1, borderColor: '#ECECEC' },
-  emptyUp: { padding: 12, borderRadius: 10, backgroundColor: '#F7F7FA', borderWidth: 1, borderColor: '#ECECEC', alignItems: 'center' },
+  upItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 8, borderRadius: 10, backgroundColor: Design.colors.mutedSurface, borderWidth: 1, borderColor: Design.colors.border },
+  emptyUp: { padding: 12, borderRadius: 10, backgroundColor: Design.colors.mutedSurface, borderWidth: 1, borderColor: Design.colors.border, alignItems: 'center' },
 });
