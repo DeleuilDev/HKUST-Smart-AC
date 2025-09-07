@@ -55,3 +55,42 @@ export interface DatabaseShape {
   scheduledActions: ScheduledAction[];
   _meta: { version: number };
 }
+
+export type WeeklyMode = 'on' | 'off';
+export type WeeklyHours = {
+  mon: number[];
+  tue: number[];
+  wed: number[];
+  thu: number[];
+  fri: number[];
+  sat: number[];
+  sun: number[];
+};
+
+export interface WeeklySchedule {
+  id: string;
+  userId: string;
+  mode: WeeklyMode; // 'on' means selected slots turn AC ON; 'off' means selected slots turn AC OFF
+  slots: boolean[]; // length 168 (7 days * 24 hours)
+  // Derived mapping for readability (not necessarily persisted): hours active per day (0..23)
+  hours?: WeeklyHours;
+  createdAt: ISODateString;
+  updatedAt: ISODateString;
+}
+
+export interface SmartModeConfig {
+  id: string;
+  userId: string;
+  runMinutes: number;
+  pauseMinutes: number;
+  totalMinutes?: number; // optional: run until manually stopped
+  startAt?: ISODateString; // optional delayed start
+  active: boolean;
+  remainingMinutes?: number; // counts down when totalMinutes set
+  phase?: 'idle' | 'running' | 'paused';
+  nextAt?: ISODateString;
+  startedAt?: ISODateString;
+  endsAt?: ISODateString;
+  createdAt: ISODateString;
+  updatedAt: ISODateString;
+}

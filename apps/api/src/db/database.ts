@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import type { ScheduledAction, User } from './types.js';
+import type { ScheduledAction, User, WeeklySchedule, WeeklyMode, WeeklyHours, SmartModeConfig } from './types.js';
 import { getSupabase } from '../lib/supabase.js';
 import { extractUserFields } from '../util/extract.js';
 
@@ -314,9 +314,229 @@ export const db = {
       lastError: data.last_error ?? undefined, executedAt: data.executed_at ? new Date(data.executed_at).toISOString() : undefined,
     };
   },
+
+  // Weekly schedules (persistent, applied automatically)
+  async getWeeklyScheduleByUser(userId: string): Promise<WeeklySchedule | undefined> {
+    const supabase = getSupabase();
+    const { data, error } = await supabase
+      .from('weekly_schedules')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return undefined;
+    const base: WeeklySchedule = {
+      id: String(data.id),
+      userId: data.user_id,
+      mode: (data.mode ?? 'on') as WeeklyMode,
+      slots: Array.isArray(data.slots) ? (data.slots as any[]).map(Boolean) : [],
+      createdAt: new Date(data.created_at).toISOString(),
+      updatedAt: new Date(data.updated_at).toISOString(),
+    };
+    try { base.hours = slotsToHours(base.slots); } catch {}
+    return base;
+  },
+
+  async upsertWeeklySchedule(userId: string, input: { mode: WeeklyMode; slots: boolean[] }): Promise<WeeklySchedule> {
+    const supabase = getSupabase();
+    const { data: existing } = await supabase
+      .from('weekly_schedules')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+    const record = {
+      user_id: userId,
+      mode: input.mode,
+      slots: input.slots,
+      updated_at: nowISO(),
+    } as any;
+    if (!existing) record.created_at = nowISO();
+    const q = existing
+      ? supabase.from('weekly_schedules').update(record).eq('id', existing.id).select('*').single()
+      : supabase.from('weekly_schedules').insert(record).select('*').single();
+    const { data, error } = await q;
+    if (error) throw error;
+    const out: WeeklySchedule = {
+      id: String(data.id),
+      userId: data.user_id,
+      mode: (data.mode ?? 'on') as WeeklyMode,
+      slots: Array.isArray(data.slots) ? (data.slots as any[]).map(Boolean) : [],
+      createdAt: new Date(data.created_at).toISOString(),
+      updatedAt: new Date(data.updated_at).toISOString(),
+    };
+    try { out.hours = slotsToHours(out.slots); } catch {}
+    return out;
+  },
+
+  async listAllWeeklySchedules(): Promise<WeeklySchedule[]> {
+    const supabase = getSupabase();
+    const { data, error } = await supabase.from('weekly_schedules').select('*');
+    if (error) throw error;
+    return (data || []).map((d) => {
+      const slots = Array.isArray(d.slots) ? (d.slots as any[]).map(Boolean) : [];
+      const obj: WeeklySchedule = {
+        id: String(d.id),
+        userId: d.user_id,
+        mode: (d.mode ?? 'on') as WeeklyMode,
+        slots,
+        createdAt: new Date(d.created_at).toISOString(),
+        updatedAt: new Date(d.updated_at).toISOString(),
+      };
+      try { obj.hours = slotsToHours(slots); } catch {}
+      return obj;
+    });
+  },
+
+  // Smart Mode
+  async getSmartModeByUser(userId: string): Promise<SmartModeConfig | undefined> {
+    const supabase = getSupabase();
+    const { data, error } = await supabase
+      .from('smart_modes')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return undefined;
+    return {
+      id: String(data.id),
+      userId: data.user_id,
+      runMinutes: data.run_minutes,
+      pauseMinutes: data.pause_minutes,
+      totalMinutes: data.total_minutes ?? undefined,
+      startAt: data.start_at ? new Date(data.start_at).toISOString() : undefined,
+      active: Boolean(data.active),
+      remainingMinutes: data.remaining_minutes ?? undefined,
+      phase: data.phase ?? undefined,
+      nextAt: data.next_at ? new Date(data.next_at).toISOString() : undefined,
+      startedAt: data.started_at ? new Date(data.started_at).toISOString() : undefined,
+      endsAt: data.ends_at ? new Date(data.ends_at).toISOString() : undefined,
+      createdAt: new Date(data.created_at).toISOString(),
+      updatedAt: new Date(data.updated_at).toISOString(),
+    };
+  },
+
+  async upsertSmartMode(userId: string, input: {
+    runMinutes: number; pauseMinutes: number; totalMinutes?: number; startAt?: string | null; active?: boolean;
+  }): Promise<SmartModeConfig> {
+    const supabase = getSupabase();
+    const now = nowISO();
+    const existing = await this.getSmartModeByUser(userId);
+    const record: any = {
+      user_id: userId,
+      run_minutes: Math.trunc(input.runMinutes),
+      pause_minutes: Math.trunc(input.pauseMinutes),
+      total_minutes: input.totalMinutes != null ? Math.trunc(input.totalMinutes) : null,
+      start_at: input.startAt ?? null,
+      active: input.active ?? true,
+      updated_at: now,
+    };
+    if (!existing) record.created_at = now;
+    if (record.total_minutes != null) record.remaining_minutes = record.total_minutes; else record.remaining_minutes = null;
+    const q = existing
+      ? supabase.from('smart_modes').update(record).eq('id', existing.id).select('*').single()
+      : supabase.from('smart_modes').insert(record).select('*').single();
+    const { data, error } = await q;
+    if (error) throw error;
+    return {
+      id: String(data.id), userId: data.user_id,
+      runMinutes: data.run_minutes, pauseMinutes: data.pause_minutes,
+      totalMinutes: data.total_minutes ?? undefined,
+      startAt: data.start_at ? new Date(data.start_at).toISOString() : undefined,
+      active: Boolean(data.active),
+      remainingMinutes: data.remaining_minutes ?? undefined,
+      phase: data.phase ?? undefined,
+      nextAt: data.next_at ? new Date(data.next_at).toISOString() : undefined,
+      startedAt: data.started_at ? new Date(data.started_at).toISOString() : undefined,
+      endsAt: data.ends_at ? new Date(data.ends_at).toISOString() : undefined,
+      createdAt: new Date(data.created_at).toISOString(),
+      updatedAt: new Date(data.updated_at).toISOString(),
+    };
+  },
+
+  async updateSmartMode(userId: string, patch: Partial<SmartModeConfig>): Promise<SmartModeConfig | undefined> {
+    const supabase = getSupabase();
+    const existing = await this.getSmartModeByUser(userId);
+    if (!existing) return undefined;
+    const changes: any = { updated_at: nowISO() };
+    if (patch.runMinutes != null) changes.run_minutes = Math.trunc(patch.runMinutes);
+    if (patch.pauseMinutes != null) changes.pause_minutes = Math.trunc(patch.pauseMinutes);
+    if (patch.totalMinutes !== undefined) changes.total_minutes = patch.totalMinutes != null ? Math.trunc(patch.totalMinutes) : null;
+    if (patch.startAt !== undefined) changes.start_at = patch.startAt ?? null;
+    if (patch.active !== undefined) changes.active = patch.active;
+    if (patch.remainingMinutes !== undefined) changes.remaining_minutes = patch.remainingMinutes;
+    if (patch.phase !== undefined) changes.phase = patch.phase;
+    if (patch.nextAt !== undefined) changes.next_at = patch.nextAt;
+    if (patch.startedAt !== undefined) changes.started_at = patch.startedAt;
+    if (patch.endsAt !== undefined) changes.ends_at = patch.endsAt;
+    const { data, error } = await supabase
+      .from('smart_modes')
+      .update(changes)
+      .eq('id', existing.id)
+      .select('*')
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return undefined;
+    return {
+      id: String(data.id), userId: data.user_id,
+      runMinutes: data.run_minutes, pauseMinutes: data.pause_minutes,
+      totalMinutes: data.total_minutes ?? undefined,
+      startAt: data.start_at ? new Date(data.start_at).toISOString() : undefined,
+      active: Boolean(data.active),
+      remainingMinutes: data.remaining_minutes ?? undefined,
+      phase: data.phase ?? undefined,
+      nextAt: data.next_at ? new Date(data.next_at).toISOString() : undefined,
+      startedAt: data.started_at ? new Date(data.started_at).toISOString() : undefined,
+      endsAt: data.ends_at ? new Date(data.ends_at).toISOString() : undefined,
+      createdAt: new Date(data.created_at).toISOString(),
+      updatedAt: new Date(data.updated_at).toISOString(),
+    };
+  },
+
+  async listActiveSmartModes(): Promise<SmartModeConfig[]> {
+    const supabase = getSupabase();
+    const { data, error } = await supabase
+      .from('smart_modes')
+      .select('*')
+      .eq('active', true);
+    if (error) throw error;
+    return (data || []).map((d) => ({
+      id: String(d.id), userId: d.user_id,
+      runMinutes: d.run_minutes, pauseMinutes: d.pause_minutes,
+      totalMinutes: d.total_minutes ?? undefined,
+      startAt: d.start_at ? new Date(d.start_at).toISOString() : undefined,
+      active: Boolean(d.active),
+      remainingMinutes: d.remaining_minutes ?? undefined,
+      phase: d.phase ?? undefined,
+      nextAt: d.next_at ? new Date(d.next_at).toISOString() : undefined,
+      startedAt: d.started_at ? new Date(d.started_at).toISOString() : undefined,
+      endsAt: d.ends_at ? new Date(d.ends_at).toISOString() : undefined,
+      createdAt: new Date(d.created_at).toISOString(),
+      updatedAt: new Date(d.updated_at).toISOString(),
+    }));
+  },
 };
 
 export function sha256(input?: string) {
   if (!input) return undefined;
   return sha256String(input);
+}
+
+function slotsToHours(slots: boolean[]): WeeklyHours {
+  const ensure = (arr: number[]) => Array.from(new Set(arr)).sort((a, b) => a - b);
+  const dayHours = (dayIndexMon0: number) => {
+    const sun0 = (dayIndexMon0 + 1) % 7; // convert to sunday-first index in slots
+    const base = sun0 * 24;
+    const hours: number[] = [];
+    for (let h = 0; h < 24; h++) if (slots[base + h]) hours.push(h);
+    return ensure(hours);
+  };
+  return {
+    mon: dayHours(0),
+    tue: dayHours(1),
+    wed: dayHours(2),
+    thu: dayHours(3),
+    fri: dayHours(4),
+    sat: dayHours(5),
+    sun: dayHours(6),
+  };
 }

@@ -186,6 +186,40 @@ create table if not exists public.scheduled_actions (
 
 create index if not exists idx_sched_user on public.scheduled_actions(user_id);
 create index if not exists idx_sched_pending on public.scheduled_actions(status) where status = 'pending';
+
+-- Weekly schedules: persistent per-user 7x24 grid
+create table if not exists public.weekly_schedules (
+  id bigserial primary key,
+  user_id uuid not null,
+  mode text not null default 'on' check (mode in ('on','off')),
+  slots jsonb not null, -- boolean[168]
+  -- Optional: a human-friendly map of active hours per day (Mon-first)
+  -- { mon: int[], tue: int[], wed: int[], thu: int[], fri: int[], sat: int[], sun: int[] }
+  -- You may keep this denormalized field in sync in triggers; our API also computes it on the fly.
+  hours_by_day jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists idx_weekly_user on public.weekly_schedules(user_id);
+
+-- Smart Mode: single-row per-user configuration (run/pause/total), stateful
+create table if not exists public.smart_modes (
+  id bigserial primary key,
+  user_id uuid not null references public.users(id) on delete cascade,
+  run_minutes integer not null check (run_minutes > 0 and run_minutes <= 1440),
+  pause_minutes integer not null default 0 check (pause_minutes >= 0 and pause_minutes <= 1440),
+  total_minutes integer check (total_minutes > 0 and total_minutes <= 10080), -- optional (7 days max)
+  start_at timestamptz, -- optional delayed start
+  active boolean not null default true,
+  remaining_minutes integer, -- derived when using total_minutes; null when unlimited
+  phase text, -- 'idle'|'running'|'paused'
+  next_at timestamptz, -- next planned ON
+  started_at timestamptz,
+  ends_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create unique index if not exists uq_smart_modes_user on public.smart_modes(user_id);
 alter table public.scheduled_actions enable row level security;
 
 -- USERS policies

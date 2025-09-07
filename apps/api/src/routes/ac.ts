@@ -126,6 +126,10 @@ router.post('/power', async (req, res) => {
   const result = await acRemoteFetch('/prepaid/toggle-status', ctx.token, { method: 'POST', body: JSON.stringify(upstream) });
   if (result.status >= 200 && result.status < 300) {
     const msg = candidateStatus === 1 ? 'AirConditioner turned on.' : 'AirConditioner turned off.';
+    // On manual OFF, stop Smart Mode for this user
+    if (candidateStatus === 0) {
+      try { const { smartMode } = await import('../scheduler/smartMode.js'); await smartMode.stop(ctx.userId); } catch {}
+    }
     res.status(200).json({ message: msg });
   } else {
     const raw = String((result.body as any)?.errorMessage || '').toLowerCase();

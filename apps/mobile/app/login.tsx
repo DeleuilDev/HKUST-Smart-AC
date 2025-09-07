@@ -6,8 +6,9 @@ import { Stack, useRouter } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { AC_APP_ENTRY_URL } from '@/constants/api';
-import { extractToken, setAuth } from '@/lib/auth';
+import { extractToken, setAuth, getAuth, clearAuth } from '@/lib/auth';
 import { backendFetch, SessionResponse } from '@/lib/backend';
+import { Pressable } from 'react-native';
 
 const injection = `(() => {
   try {
@@ -75,9 +76,42 @@ export default function LoginScreen() {
   const webRef = useRef<WebView>(null);
   const [captured, setCaptured] = useState(false);
   const [lastUrl, setLastUrl] = useState<string>('');
+  const [apiStatus, setApiStatus] = useState<'checking' | 'ok' | 'error'>('checking');
+  const [apiError, setApiError] = useState<string>('');
   
 
   const source = useMemo(() => ({ uri: AC_APP_ENTRY_URL }), []);
+
+  const checkApiReachable = useCallback(async () => {
+    setApiStatus('checking');
+    setApiError('');
+    try {
+      const res = await backendFetch('/health');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const body = await res.json().catch(() => ({}));
+      if (body && body.ok === true) {
+        setApiStatus('ok');
+      } else {
+        throw new Error('Réponse invalide du backend');
+      }
+    } catch (e: any) {
+      setApiError(`API injoignable: ${e?.message || String(e)}`);
+      setApiStatus('error');
+    }
+  }, []);
+
+  // On mount: if already authenticated, clear token; then verify API reachability
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const existing = await getAuth();
+        if (existing) {
+          await clearAuth();
+        }
+      } catch {}
+      await checkApiReachable();
+    })();
+  }, [checkApiReachable]);
 
   const onMessage = useCallback(async (e: WebViewMessageEvent) => {
     try {
@@ -129,7 +163,7 @@ export default function LoginScreen() {
   return (
     <ThemedView style={{ flex: 1 }}>
       <Stack.Screen options={{ title: 'CAS Login', headerShown: true }} />
-      {!captured && (
+      {!captured && apiStatus === 'ok' && (
         <WebView
           ref={webRef}
           originWhitelist={["*"]}
@@ -161,6 +195,21 @@ export default function LoginScreen() {
             </SafeAreaView>
           )}
         />
+      )}
+      {apiStatus === 'checking' && !captured && (
+        <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <ActivityIndicator />
+          <ThemedText style={{ marginTop: 8 }}>Vérification du backend…</ThemedText>
+        </SafeAreaView>
+      )}
+      {apiStatus === 'error' && !captured && (
+        <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <ThemedText type="title" style={{ textAlign: 'center', marginBottom: 8 }}>Backend indisponible</ThemedText>
+          <ThemedText style={{ textAlign: 'center', marginBottom: 16 }}>{apiError || 'Impossible de joindre l’API.'}</ThemedText>
+          <Pressable onPress={checkApiReachable} style={{ paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, backgroundColor: '#007AFF' }}>
+            <ThemedText style={{ color: 'white' }}>Réessayer</ThemedText>
+          </Pressable>
+        </SafeAreaView>
       )}
       {captured && (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, StyleSheet, View, ScrollView } from 'react-native';
+import { ActivityIndicator, StyleSheet, View, ScrollView, Pressable, Switch } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -11,12 +11,14 @@ import { backendAuthedFetch } from '@/lib/backend';
 import Card from '@/components/ui/Card';
 import PrimaryButton from '@/components/ui/PrimaryButton';
 import IconButton from '@/components/ui/IconButton';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import StatPill from '@/components/ui/StatPill';
 import MinutesCard from '@/components/ui/MinutesCard';
 import ACControlsCard from '@/components/ui/ACControlsCard';
 import { Design } from '@/constants/Design';
 import Toast from '@/components/ui/Toast';
 import * as Haptics from 'expo-haptics';
+import * as SecureStore from 'expo-secure-store';
 // Icon usage moved into IconButton
 
 type ApiResult = { status: number; body: any } | null;
@@ -33,28 +35,46 @@ export default function ProfileScreen() {
   const [status, setStatus] = useState<Status>(null);
   const [balance, setBalance] = useState<number | null>(null);
   const [totalPaid, setTotalPaid] = useState<number | null>(null);
+  const [smartConfig, setSmartConfig] = useState<any | null>(null);
   const [toast, setToast] = useState<{ visible: boolean; message: string; variant: 'success' | 'error' | 'info' }>({ visible: false, message: '', variant: 'info' });
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [devMode, setDevMode] = useState<boolean>(false);
+
+  // Persisted dev mode toggle
+  useEffect(() => {
+    (async () => {
+      try {
+        const raw = await SecureStore.getItemAsync('DEV_MODE');
+        if (raw === '1') setDevMode(true);
+      } catch {}
+    })();
+  }, []);
+  const updateDevMode = async (next: boolean) => {
+    setDevMode(next);
+    try { await SecureStore.setItemAsync('DEV_MODE', next ? '1' : '0'); } catch {}
+  };
 
   const fetchStatusAndBalance = useCallback(async () => {
     try {
-      const [sRes, bRes] = await Promise.all([
+      const [sRes, bRes, smRes] = await Promise.all([
         backendAuthedFetch('/ac/status'),
         backendAuthedFetch('/ac/balance'),
+        backendAuthedFetch('/smart-mode'),
       ]);
-      if (sRes.status === 401 || sRes.status === 403 || bRes.status === 401 || bRes.status === 403) {
+      if (sRes.status === 401 || sRes.status === 403 || bRes.status === 401 || bRes.status === 403 || smRes.status === 401 || smRes.status === 403) {
         try { await clearAuth(); } catch {}
         setError('Token expiré/invalide. Veuillez vous reconnecter.');
         router.replace('/welcome');
         return;
       }
-      const sTxt = await sRes.text();
-      const bTxt = await bRes.text();
+      const [sTxt, bTxt, smTxt] = await Promise.all([sRes.text(), bRes.text(), smRes.text()]);
       const s = safeJson(sTxt);
       const b = safeJson(bTxt);
+      const sm = safeJson(smTxt);
       setStatus(parseServerStatusToUi(s));
       setBalance(Number(b?.balance ?? b?.data?.balance ?? NaN));
       setTotalPaid(Number(b?.totalPaidInMinute ?? b?.data?.totalPaidInMinute ?? NaN));
+      setSmartConfig(sm?.config || null);
     } catch (_) {
       // no-op: errors handled elsewhere when user triggers actions
     }
@@ -129,6 +149,7 @@ export default function ProfileScreen() {
         setBalance(Number((parsed as any)?.balance ?? (parsed as any)?.data?.balance ?? NaN));
         setTotalPaid(Number((parsed as any)?.totalPaidInMinute ?? (parsed as any)?.data?.totalPaidInMinute ?? NaN));
       }
+      if (path.includes('/smart-mode')) setSmartConfig((parsed as any)?.config || null);
       // Popup feedback on AC power operations: show server-provided message only
       if (path.includes('/ac/power')) {
         const serverMsg =
@@ -201,20 +222,75 @@ export default function ProfileScreen() {
           <MinutesCard balance={balance ?? undefined} totalPaidInMinute={totalPaid ?? undefined} />
         )}
 
-        <ACControlsCard onAction={handleApi} powerState={status?.power} />
+        {/* AC Controls wrapped with Smart Mode indicator when active */}
+        <View style={smartConfig?.active ? styles.smartWrap : undefined}>
+          {smartConfig?.active && (
+            <View style={styles.smartBanner}>
+              <ThemedText style={styles.smartBannerText}>Smart mode active</ThemedText>
+              <IconButton name="stop" onPress={async () => {
+                try {
+                  const res = await backendAuthedFetch('/smart-mode', { method: 'DELETE' });
+                  if (res.ok) {
+                    setSmartConfig(null);
+                    showToast('Smart mode stopped', 'success');
+                    try {
+                      const sRes = await backendAuthedFetch('/ac/status');
+                      const sTxt = await sRes.text();
+                      const s = safeJson(sTxt);
+                      setStatus(parseServerStatusToUi(s));
+                    } catch {}
+                  }
+                } catch {}
+              }} color={'#FFFFFF'} background={Design.colors.primary} />
+            </View>
+          )}
+          <ACControlsCard onAction={handleApi} powerState={status?.power} disabled={!!smartConfig?.active} />
+        </View>
 
-        <Card>
-          <ThemedText type="subtitle">Refresh</ThemedText>
-          <View style={styles.rowGap}>
-            <PrimaryButton title="Refresh Status" onPress={() => handleApi('status', 'GET', '/ac/status')} />
-            <PrimaryButton title="Refresh Balance" onPress={() => handleApi('balance', 'GET', '/ac/balance')} />
+        <Card style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#ECECEC' }}>
+          <View style={styles.advHeaderRow}>
+            <View style={styles.advIconBadge}>
+              <MaterialCommunityIcons name="calendar-multiple-check" size={22} color={Design.colors.primary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <ThemedText type="subtitle">Advanced Features</ThemedText>
+              <ThemedText style={styles.advHelper}>Smart Mode, weekly plans, and schedules</ThemedText>
+            </View>
+          </View>
+          <View style={styles.advGrid}>
+            <FeatureTile icon="progress-clock" label="Smart Mode" onPress={() => { try { router.push('/smart-mode'); } catch {} }} />
+            <FeatureTile icon="calendar-week" label="Weekly" onPress={() => { try { router.push('/weekly-schedule'); } catch {} }} />
+            <FeatureTile icon="calendar-clock" label="Schedule" onPress={() => { try { router.push('/schedule'); } catch {} }} />
           </View>
         </Card>
 
-        <Card style={{ gap: 8 }}>
-          <ThemedText type="subtitle">Last response</ThemedText>
-          {error && <ThemedText style={{ color: '#E53935' }}>{error}</ThemedText>}
-          {result ? <Pre json={result} /> : <ThemedText>Aucune requête encore.</ThemedText>}
+        {devMode && (
+          <Card>
+            <ThemedText type="subtitle">Refresh</ThemedText>
+            <View style={styles.rowGap}>
+              <PrimaryButton title="Refresh Status" onPress={() => handleApi('status', 'GET', '/ac/status')} />
+              <PrimaryButton title="Refresh Balance" onPress={() => handleApi('balance', 'GET', '/ac/balance')} />
+            </View>
+          </Card>
+        )}
+
+        {devMode && (
+          <Card style={{ gap: 8 }}>
+            <ThemedText type="subtitle">Last response</ThemedText>
+            {error && <ThemedText style={{ color: '#E53935' }}>{error}</ThemedText>}
+            {result ? <Pre json={result} /> : <ThemedText>Aucune requête encore.</ThemedText>}
+          </Card>
+        )}
+
+        {/* Developer mode toggle */}
+        <Card>
+          <View style={styles.devRow}>
+            <View style={{ flex: 1 }}>
+              <ThemedText type="subtitle">Developer mode</ThemedText>
+              <ThemedText style={{ color: Design.colors.textSecondary }}>Show debug tools (Refresh, Last response)</ThemedText>
+            </View>
+            <Switch value={devMode} onValueChange={updateDevMode} />
+          </View>
         </Card>
       </View>
 
@@ -325,6 +401,54 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   rowGap: { gap: 12, marginTop: 12 },
+  devRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  advHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 },
+  advIconBadge: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F1F1F4',
+  },
+  advHelper: { color: Design.colors.textSecondary, marginTop: 2 },
+  advGrid: { flexDirection: 'row', flexWrap: 'nowrap', gap: 8, justifyContent: 'space-between' },
+  featureTile: {
+    width: '32%',
+    alignItems: 'center',
+    paddingVertical: 14,
+    backgroundColor: '#F7F7FA',
+    borderWidth: 1,
+    borderColor: '#ECECEC',
+    borderRadius: 16,
+  },
+  featureIconCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F1F1F4',
+    marginBottom: 8,
+  },
+  featureLabel: { fontWeight: '700', color: Design.colors.textPrimary },
+  smartWrap: {
+    borderWidth: 2,
+    borderColor: Design.colors.accent,
+    borderRadius: 16,
+    padding: 8,
+  },
+  smartBanner: {
+    paddingHorizontal: 8,
+    paddingBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  smartBannerText: {
+    color: Design.colors.primary,
+    fontWeight: '700',
+  },
   pill: {
     position: 'absolute',
     width: 200,
@@ -334,3 +458,14 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '45deg' }],
   },
 });
+
+function FeatureTile({ icon, label, onPress }: { icon: React.ComponentProps<typeof MaterialCommunityIcons>['name']; label: string; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.featureTile, pressed && { opacity: 0.9 }] }>
+      <View style={styles.featureIconCircle}>
+        <MaterialCommunityIcons name={icon} size={26} color={Design.colors.primary} />
+      </View>
+      <ThemedText style={styles.featureLabel}>{label}</ThemedText>
+    </Pressable>
+  );
+}

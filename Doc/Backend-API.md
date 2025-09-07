@@ -80,6 +80,48 @@ Notes:
 - DELETE `/schedule/:id` (Bearer)
   - Annule une action en `pending`
 
+Nouveaux (avancés):
+- POST `/schedule/range` (Bearer)
+  - Body: `{ start: ISOString, end: ISOString }` → crée `power_on@start` et `power_off@end` dans un même groupe
+  - Réponse: `{ groupId: string, items: ScheduledAction[] }`
+- POST `/schedule/weekly` (Bearer)
+  - Body: `{ daysOfWeek: number[], startTime: 'HH:mm', endTime: 'HH:mm', fromDate?: ISOString, toDate?: ISOString, weeksCount?: number }`
+  - Si `toDate` absent, `weeksCount` par défaut à 8 semaines à partir de `fromDate|now`
+  - Crée deux actions par jour sélectionné (ON/OFF), regroupées sous un `groupId`
+  - Réponse: `{ groupId: string, items: ScheduledAction[] }`
+- POST `/schedule/smart-cycle` (Bearer)
+  - Body: `{ runMinutes: number, pauseMinutes: number, totalMinutes: number, startAt?: ISOString }`
+  - Effet: planifie une séquence de `set_timer` (AC ON avec auto-off) qui s'enchaîne avec des pauses jusqu'à atteindre `totalMinutes`.
+    - Exemple: `run=20`, `pause=10`, `total=180` → ~9 cycles ON 20m, OFF 10m (dernier cycle éventuellement tronqué pour ne pas dépasser `total`).
+  - Contraintes: `runMinutes > 0`, `pauseMinutes >= 0`, `totalMinutes > 0`, garde-fou `<= 500` cycles.
+  - Réponse: `{ groupId: string, items: ScheduledAction[] }` (chaque item est de type `set_timer` avec `payload.minutes`).
+
+## Smart Mode (persistant)
+- GET `/smart-mode` (Bearer)
+  - Réponse: `{ config: { userId, runMinutes, pauseMinutes, totalMinutes?, startAt?, active, remainingMinutes?, phase?, nextAt?, startedAt?, endsAt? } | null }`
+- POST `/smart-mode` (Bearer)
+  - Body: `{ runMinutes: number, pauseMinutes: number, totalMinutes?: number, startAt?: ISOString, active?: boolean }`
+  - Effet: enregistre la configuration (1 ligne par utilisateur) et démarre/relance Smart Mode. `totalMinutes` est optionnel (fonctionne en continu sinon).
+  - Réponse: `{ config }`
+- DELETE `/smart-mode` (Bearer)
+  - Effet: arrête Smart Mode (désactive et annule les redémarrages futurs), et coupe la clim (OFF) immédiatement.
+  - Réponse: `{ ok: true, turnedOff: boolean }`
+
+Notes:
+- Un orchestrateur en mémoire exécute Smart Mode sans créer de multiples actions planifiées; il ne garde qu’un prochain déclenchement.
+- Un OFF manuel via `POST /ac/power { action: 'off' }` stoppe aussi Smart Mode pour l’utilisateur.
+- GET `/schedule/groups` (Bearer)
+  - Regroupe les actions par `payload.groupId` → `{ items: { id, count, pending, first, last }[] }`
+- DELETE `/schedule/groups/:id` (Bearer)
+  - Annule toutes les actions `pending` du groupe
+
+### Plan hebdomadaire (persistant)
+- GET `/schedule/weekly-plan` (Bearer)
+  - Réponse: `{ plan: { id, userId, mode: 'on'|'off', slots: boolean[168], hours?: { mon:number[], tue:number[], wed:number[], thu:number[], fri:number[], sat:number[], sun:number[] } } | null }`
+- PUT `/schedule/weekly-plan` (Bearer)
+  - Body: `{ mode: 'on'|'off', slots: boolean[168] }`
+  - Réponse: `{ plan }` (inclut `slots` et le champ dérivé `hours` pour lecture humaine)
+
 `ScheduledAction`:
 ```
 {
@@ -99,6 +141,7 @@ Notes:
 ## Exécution
 - Un ordonnanceur en mémoire (in-process) charge les actions `pending` et les exécute à l'heure prévue.
 - Le module `scheduler/executor.ts` est un stub: à remplacer par des appels réels à l'API de l'école avec le token CAS.
+ - Smart Mode: `scheduler/smartMode.ts` pilote les cycles ON/pause et gère `remainingMinutes` si `totalMinutes` est défini.
 
 ## Sécurité / Config
 - `JWT_SECRET` ou `SUPABASE_JWT_SECRET` doit être défini côté serveur.

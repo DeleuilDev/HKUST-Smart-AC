@@ -6,6 +6,8 @@ import profileRoutes from './routes/profile.js';
 import scheduleRoutes from './routes/schedule.js';
 import acRoutes from './routes/ac.js';
 import { scheduler } from './scheduler/scheduler.js';
+import { smartMode } from './scheduler/smartMode.js';
+import smartModeRoutes from './routes/smart-mode.js';
 
 const app = express();
 app.use(express.json());
@@ -20,9 +22,11 @@ app.use('/auth', authRoutes);
 app.use('/profile', profileRoutes);
 app.use('/schedule', scheduleRoutes);
 app.use('/ac', acRoutes);
+app.use('/smart-mode', smartModeRoutes);
 
 const port = Number(process.env.PORT || 3000);
 app.listen(port, () => {
   console.log(`API listening on :${port}`);
   scheduler.start();
+  smartMode.start();
 });

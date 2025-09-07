@@ -17,6 +17,7 @@ export default function PrimaryButton({
   size = 'md',
   iconLeft,
   style,
+  disabled,
 }: {
   title: string;
   onPress: () => void;
@@ -25,6 +26,7 @@ export default function PrimaryButton({
   size?: Size;
   iconLeft?: React.ComponentProps<typeof MaterialCommunityIcons>['name'];
   style?: ViewStyle;
+  disabled?: boolean;
 }) {
   let bg = '#FFFFFF';
   let color = Design.colors.textPrimary;
@@ -39,8 +41,9 @@ export default function PrimaryButton({
 
   const dims = size === 'sm' ? styles.sizeSm : styles.sizeMd;
 
+  const opacity = disabled ? 0.5 : 1;
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.base, dims, { backgroundColor: bg }, pressed && { transform: [{ scale: 0.98 }] }, style]}>
+    <Pressable disabled={disabled} onPress={onPress} style={({ pressed }) => [styles.base, dims, { backgroundColor: bg, opacity }, pressed && { transform: [{ scale: 0.98 }] }, style]}>
       <View style={styles.contentRow}>
         {iconLeft ? <MaterialCommunityIcons name={iconLeft} size={18} color={color} style={{ marginRight: 8 }} /> : null}
         <ThemedText type="link" style={{ color }}>{title}</ThemedText>
