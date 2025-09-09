@@ -10,6 +10,7 @@ import { Design } from '@/constants/Design';
 import { backendAuthedFetch } from '@/lib/backend';
 import { clearAuth } from '@/lib/auth';
 import { useFocusEffect } from '@react-navigation/native';
+import { usePremiumAccess } from '@/hooks/usePremiumAccess';
 
 export default function SmartModeScreen() {
   const [runMinutes, setRunMinutes] = useState<number>(20);
@@ -23,6 +24,7 @@ export default function SmartModeScreen() {
   const [config, setConfig] = useState<any | null>(null);
   const prefilledOnce = React.useRef(false);
   const [dirty, setDirty] = useState<boolean>(false);
+  const { hasAccess, unlockWithAd, loading: unlocking, adsAvailable, lastError, clearAccess } = usePremiumAccess();
 
   const reloadConfig = useCallback(async () => {
     try {
@@ -74,7 +76,10 @@ export default function SmartModeScreen() {
       if (res.status === 401 || res.status === 403) { try { await clearAuth(); } catch {}; return; }
       const ok = res.ok; const txt = await res.text(); const body = safeJson(txt);
       if (ok) {
-        setInfo('Smart mode started'); setActive(true); await reloadConfig();
+        setInfo('Smart mode started'); setActive(true);
+        // Consume single-use start token after a successful start
+        try { await clearAccess(); } catch {}
+        await reloadConfig();
       } else {
         setError(String(body?.error || body?.errorMessage || 'Failed'));
       }
@@ -140,16 +145,39 @@ export default function SmartModeScreen() {
 
           <View style={{ flexDirection: 'row', gap: 12, flexWrap: 'wrap' }}>
             {!active && (
-              <PrimaryButton
-                title={submitting ? 'Starting…' : 'Start Smart Mode'}
-                onPress={startSmart}
-                disabled={submitting || !isValid}
-                variant="primary"
-                appearance="solid"
-                iconLeft="progress-clock"
-              />
+              hasAccess ? (
+                <PrimaryButton
+                  title={submitting ? 'Starting…' : 'Start Smart Mode'}
+                  onPress={startSmart}
+                  disabled={submitting || !isValid}
+                  variant="primary"
+                  appearance="solid"
+                  iconLeft="progress-clock"
+                />
+              ) : (
+                <PrimaryButton
+                  title={adsAvailable ? (unlocking ? 'Loading ad…' : 'Watch an ad to unlock start') : 'Ads unavailable in Expo Go'}
+                  onPress={() => { if (!unlocking && adsAvailable) unlockWithAd(); }}
+                  disabled={unlocking || !adsAvailable}
+                  variant="primary"
+                  appearance="soft"
+                  iconLeft="progress-clock"
+                />
+              )
             )}
           </View>
+
+          {!active && hasAccess && (
+            <ThemedText style={{ color: Design.colors.textSecondary }}>
+              Start unlocked • valid for one start
+            </ThemedText>
+          )}
+
+          {!active && !hasAccess && lastError && (
+            <ThemedText style={{ color: Design.colors.textSecondary }}>
+              {String(lastError)}
+            </ThemedText>
+          )}
 
           {!active && !isValid && (
             <ThemedText style={{ color: Design.colors.statusNegative }}>Run minutes must be greater than 0.</ThemedText>

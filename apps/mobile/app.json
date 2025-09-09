@@ -7,14 +7,17 @@
     "icon": "./assets/images/icon.png",
     "scheme": "hkustsmartac",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.hkust.smartac"
+      "bundleIdentifier": "com.hkust.smartac",
+      "infoPlist": {
+        "NSUserTrackingUsageDescription": "Tracking is used to deliver relevant ads."
+      }
     },
     "android": {
       "package": "com.hkust.smartac",
-      "versionCode": 1,
+      "versionCode": 2,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -38,10 +41,24 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-2750299952867090~5286353091",
+          "iosAppId": "ca-app-pub-2750299952867090~5285518949"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "d4a0b5dd-95af-4074-8620-bf0579c7a958"
+      }
+    },
+    "owner": "mrgdev"
   }
 }
