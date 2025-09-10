@@ -2,7 +2,7 @@
   "expo": {
     "name": "HKUST-Smart-AC",
     "slug": "HKUST-Smart-AC",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "hkustsmartac",
@@ -14,7 +14,7 @@
     },
     "android": {
       "package": "com.hkust.smartac",
-      "versionCode": 1,
+      "versionCode": 2,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -42,6 +42,17 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "d4a0b5dd-95af-4074-8620-bf0579c7a958"
+      }
+    },
+    "owner": "mrgdev"
+  },
+  "react-native-google-mobile-ads": {
+    "android_app_id": "ca-app-pub-2750299952867090~5286353091",
+    "ios_app_id": "ca-app-pub-2750299952867090~5285518949"
   }
 }

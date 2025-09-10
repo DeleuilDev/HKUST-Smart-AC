@@ -6,12 +6,30 @@ import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { useAppOpenAd } from '@/hooks/useAppOpenAd';
+import { AdMobDebugPanel } from '@/components/ui/AdMobDebugPanel';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
+
+  // Initialize App Open Ads with 5-minute interval
+  const { isInitialized, error } = useAppOpenAd({
+    autoShow: true,
+    minIntervalMs: 150000, // 5 minutes between ads (5 * 60 * 1000 = 300000ms)
+    showOnFirstLaunch: true,
+    debug: __DEV__
+  });
+
+  // Log AdMob status in development
+  if (__DEV__ && isInitialized) {
+    console.log('[App] AdMob initialized successfully');
+  }
+  if (__DEV__ && error) {
+    console.error('[App] AdMob initialization error:', error);
+  }
 
   if (!loaded) {
     // Async font loading only occurs in development.
@@ -31,6 +49,9 @@ export default function RootLayout() {
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style="auto" />
+        
+        {/* Debug panel for development */}
+        {__DEV__ && <AdMobDebugPanel />}
       </ThemeProvider>
     </SafeAreaProvider>
   );

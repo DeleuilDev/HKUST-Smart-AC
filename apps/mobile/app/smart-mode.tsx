@@ -10,6 +10,7 @@ import { Design } from '@/constants/Design';
 import { backendAuthedFetch } from '@/lib/backend';
 import { clearAuth } from '@/lib/auth';
 import { useFocusEffect } from '@react-navigation/native';
+import { useRewardedAd } from '@/hooks/useRewardedAd';
 
 export default function SmartModeScreen() {
   const [runMinutes, setRunMinutes] = useState<number>(20);
@@ -23,6 +24,10 @@ export default function SmartModeScreen() {
   const [config, setConfig] = useState<any | null>(null);
   const prefilledOnce = React.useRef(false);
   const [dirty, setDirty] = useState<boolean>(false);
+
+  // Rewarded Ad for Smart Mode
+  const { showAdForReward, isLoading: adLoading, error: adError, isRewarded } = useRewardedAd();
+  const [canStartSmartMode, setCanStartSmartMode] = useState(false);
 
   const reloadConfig = useCallback(async () => {
     try {
@@ -62,6 +67,33 @@ export default function SmartModeScreen() {
 
   const isValid = runMinutes > 0 && pauseMinutes >= 0 && Number.isFinite(runMinutes) && Number.isFinite(pauseMinutes);
 
+  // Handle rewarded ad and smart mode start
+  async function handleStartSmartMode() {
+    if (!canStartSmartMode) {
+      // First show the rewarded ad
+      setSubmitting(true);
+      setError(null);
+      setInfo(null);
+      
+      try {
+        const rewarded = await showAdForReward();
+        if (rewarded) {
+          setCanStartSmartMode(true);
+          setInfo('🎉 Reward earned! You can now start Smart Mode');
+        } else {
+          setError('You need to watch the complete ad to start Smart Mode');
+        }
+      } catch (e: any) {
+        setError(e?.message || 'Failed to show ad');
+      } finally {
+        setSubmitting(false);
+      }
+    } else {
+      // Ad was watched, now start smart mode
+      await startSmart();
+    }
+  }
+
   async function startSmart() {
     setSubmitting(true);
     setError(null); setInfo(null);
@@ -74,7 +106,10 @@ export default function SmartModeScreen() {
       if (res.status === 401 || res.status === 403) { try { await clearAuth(); } catch {}; return; }
       const ok = res.ok; const txt = await res.text(); const body = safeJson(txt);
       if (ok) {
-        setInfo('Smart mode started'); setActive(true); await reloadConfig();
+        setInfo('Smart mode started'); 
+        setActive(true); 
+        setCanStartSmartMode(false); // Reset for next time
+        await reloadConfig();
       } else {
         setError(String(body?.error || body?.errorMessage || 'Failed'));
       }
@@ -141,13 +176,25 @@ export default function SmartModeScreen() {
           <View style={{ flexDirection: 'row', gap: 12, flexWrap: 'wrap' }}>
             {!active && (
               <PrimaryButton
-                title={submitting ? 'Starting…' : 'Start Smart Mode'}
-                onPress={startSmart}
-                disabled={submitting || !isValid}
+                title={
+                  submitting 
+                    ? (canStartSmartMode ? 'Starting…' : 'Loading Ad…')
+                    : canStartSmartMode 
+                      ? 'Start Smart Mode'
+                      : 'Watch Ad to Start'
+                }
+                onPress={handleStartSmartMode}
+                disabled={submitting || !isValid || adLoading}
                 variant="primary"
                 appearance="solid"
-                iconLeft="progress-clock"
+                iconLeft={canStartSmartMode ? "progress-clock" : "play"}
               />
+            )}
+            
+            {!active && canStartSmartMode && (
+              <ThemedText style={{ color: Design.colors.statusPositive, fontSize: 12, textAlign: 'center' }}>
+                ✅ Ready to start Smart Mode!
+              </ThemedText>
             )}
           </View>
 
@@ -157,6 +204,7 @@ export default function SmartModeScreen() {
         </Card>
 
         {error ? <ThemedText style={{ color: Design.colors.statusNegative }}>{error}</ThemedText> : null}
+        {adError ? <ThemedText style={{ color: Design.colors.statusNegative }}>Ad Error: {adError}</ThemedText> : null}
         {info ? <ThemedText style={{ color: Design.colors.statusPositive }}>{info}</ThemedText> : null}
       </ScrollView>
     </ThemedView>
